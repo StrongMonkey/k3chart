@@ -1,0 +1,31 @@
+# base chart url
+base: https://storage.googleapis.com/istio-release/releases/${1}/charts/istio-1.4.6.tgz
+# question.yaml to explain each question. ??????? do we still need? or use comments on values.yaml
+questions: |-
+  labels:
+    rancher.istio.v1.4.600: 1.4.6
+  rancher_min_version: 2.3.4-rc1
+# installation profiles
+profiles:
+- name:
+  values.yaml: |-
+# private registry if installed in air-gapped environment
+privateRegistry:
+# images used in this chart. Can be used in CI to mirror image to rancher
+images:
+- original:
+  rancher: 
+# rancher customization to charts
+patches:
+- path: 
+  # Can be a git-patch, json-merge or just file overwrite
+  patchFile: 
+# dependency needed to be install
+dependencies:
+- name: monitoring
+  description:
+  url: ${url}
+  monitoring
+- name: crd-init
+  description:
+  url: ${url}
