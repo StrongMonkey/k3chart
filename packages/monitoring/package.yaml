@@ -1,0 +1,17 @@
+base: https://kubernetes-charts.storage.googleapis.com/prometheus-operator-8.12.1.tgz
+questions:
+# installation profiles
+profiles:
+- name:
+  values.yaml: |-
+# private registry if installed in air-gapped environment
+privateRegistry:
+# images used in this chart. Can be used in CI to mirror image to rancher
+images:
+- original:
+  rancher: 
+# rancher customization to charts
+patches:
+- path: 
+  # Can be a git-patch, json-merge or just file overwrite
+  patchFile: 
