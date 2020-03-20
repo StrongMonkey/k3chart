@@ -1,0 +1,4 @@
+packages: 
+- name: istio-operator
+  version: 1.5.0
+  url: "https://storage.googleapis.com/k3s-chart-testing-2/istio-operator/package.yaml"
