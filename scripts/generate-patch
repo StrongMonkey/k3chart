@@ -5,6 +5,6 @@ if [[ -f packages/${1}/package.yaml ]]; then
   mkdir -p packages/${1}/charts-original
   curl -sLf ${url} | tar xvzf - -C packages/${1}/charts-original --strip 1 > /dev/null 2>&1
   if [[ -d packages/${1}/charts-modified ]]; then
-    diff -Nur packages/${1}/charts-original packages/${1}/charts-modified > packages/${1}/${1}.patch; true
+    diff -Nr packages/${1}/charts-original packages/${1}/charts-modified > packages/${1}/${1}.patch; true
   fi
 fi
