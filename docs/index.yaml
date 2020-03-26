@@ -2,9 +2,9 @@ apiVersion: v1
 entries:
   istio:
   - apiVersion: v1
-    created: "2020-03-26T16:24:35.495104193-07:00"
+    created: "2020-03-26T16:31:15.944231695-07:00"
     description: Deploy istio using operator
-    digest: a641d72512d4a5e2f561d84da4d76edcd27216f614fc288354af55894b2a17f6
+    digest: 1e6918f97e8ad9a550a412b12dc11acf7750c0d16a5978765eee4662efa67810
     icon: https://istio.io/favicons/android-192x192.png
     keywords:
     - istio
@@ -13,12 +13,12 @@ entries:
     sources:
     - http://github.com/istio/operator
     urls:
-    - https://StrongMonkey.github.com/k3charts/istio/istio-1.5.1.tgz
+    - https://strongmonkey.github.com/k3chart/istio/istio-1.5.1.tgz
     version: 1.5.1
   prometheus-operator:
   - apiVersion: v1
     appVersion: 0.37.0
-    created: "2020-03-26T16:24:35.518505592-07:00"
+    created: "2020-03-26T16:31:15.973353483-07:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -34,7 +34,7 @@ entries:
       version: 5.0.*
     description: Provides easy monitoring definitions for Kubernetes services, and
       deployment and management of Prometheus instances.
-    digest: 3184e0208c7060b6616c5543da58f6d83fb9bb811b4601bb036fe3634c446426
+    digest: 958681c4c22898cbdf464ab876c8dc8f449992a467ca2202c8d3ec183c08dab0
     home: https://github.com/coreos/prometheus-operator
     icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
     keywords:
@@ -51,6 +51,6 @@ entries:
     - https://github.com/coreos/prometheus-operator
     - https://coreos.com/operators/prometheus
     urls:
-    - https://StrongMonkey.github.com/k3charts/monitoring/prometheus-operator-8.12.1.tgz
+    - https://strongmonkey.github.com/k3chart/monitoring/prometheus-operator-8.12.1.tgz
     version: 8.12.1
-generated: "2020-03-26T16:24:35.494360572-07:00"
+generated: "2020-03-26T16:31:15.942680877-07:00"
