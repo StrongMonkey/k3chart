@@ -6,14 +6,3 @@ for f in packages/*; do
 done
 
 helm repo index docs --url https://strongmonkey.github.com/k3chart
-
-cat docs/index.html << EOF
-<html>
-  <head>
-    <title>Chart repo</title>
-  </head>
-  <body>
-    <h1>Testing</h1>
-  </body>
-</html>
-EOF
