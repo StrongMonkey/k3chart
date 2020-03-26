@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-url=$(cat packages/${1}/package.yaml | yq r - base)
-mkdir -p packages/${1}/charts-original
-curl -sLf ${url} | tar xvzf - -C packages/${1}/charts-original --strip 1
-if [[ -d packages/${1}/charts-modified ]]; then
-  diff -Nur packages/${1}/charts-original packages/${1}/charts-modified > packages/${1}/${1}.patch
+if [[ -f packages/${1}/package.yaml ]]; then
+  url=$(cat packages/${1}/package.yaml | yq r - base)
+  mkdir -p packages/${1}/charts-original
+  curl -sLf ${url} | tar xvzf - -C packages/${1}/charts-original --strip 1 > /dev/null 2>&1
+  if [[ -d packages/${1}/charts-modified ]]; then
+    diff -Nur packages/${1}/charts-original packages/${1}/charts-modified > packages/${1}/${1}.patch; true
+  fi
 fi
