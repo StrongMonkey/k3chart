@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -x
+set -e
+
+url=$(cat packages/${1}/package.yaml | yq r - base)
+mkdir -p packages/${1}/charts-modified
+curl -sLf ${url} | tar xvzf - -C packages/${1}/charts-modified --strip 1
+cd packages/${1}/charts-modified
+for f in packages/${1}/*.patch; do
+  patch -p3 < ../$(basename -- ${f})
+done
+cd ../../..
