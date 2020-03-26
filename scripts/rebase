@@ -2,6 +2,9 @@
 set -x
 set -e
 
+# rebase the patch with upsteam charts defined in package.yaml. Make sure patches still apply
+# for the latest upsteam charts. If there is conflits commiter should solve it.
+
 for f in packages/*; do
   if [[ -f ${f}/package.yaml ]]; then
     url=$(cat ${f}/package.yaml | yq r - base)
@@ -9,7 +12,10 @@ for f in packages/*; do
     mkdir -p ${f}/charts-modified
     curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1 > /dev/null 2>&1
     for file in $(find ./${f} -type f -name "*.patch"); do
-      patch -f -p3 packages/charts-modified < ${file}
+    	basename=$(basename -- ${file})
+    	cd ${f}/charts-modified
+      patch -p3 < ../$basename
+      cd ../../../
     done
   fi
 done
