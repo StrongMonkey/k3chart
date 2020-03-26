@@ -7,11 +7,9 @@ for f in packages/*; do
     url=$(cat ${f}/package.yaml | yq r - base)
     rm -rf ${f}/charts-modified
     mkdir -p ${f}/charts-modified
-    curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1
-    cd ${f}/charts-modified
-    for file in ${f}/*.patch; do
-      patch -f -p3 < ../$(basename -- ${file})
+    curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1 > /dev/null 2>&1
+    for file in $(find ./${f} -type f -name "*.patch"); do
+      patch -f -p3 packages/charts-modified < ${file}
     done
-    cd ../../..
   fi
 done

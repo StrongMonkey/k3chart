@@ -1,4 +1,8 @@
-validate:
-	./scripts/validate
+TARGETS := $(shell ls scripts)
 
-.DEFAULT_GOAL := validate
+$(TARGETS):
+	bash -c ./scripts/$@
+
+.DEFAULT_GOAL := ci
+
+.PHONY: $(TARGETS)
