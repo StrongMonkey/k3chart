@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+./scripts/bootstrap
+./scripts/validate
+./scripts/generate-charts

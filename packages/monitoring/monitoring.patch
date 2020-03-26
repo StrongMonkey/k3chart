@@ -1,12 +1,12 @@
-diff -Nr packages/monitoring/charts-original/charts/istio/Chart.yaml packages/monitoring/charts-modified/charts/istio/Chart.yaml
+diff -Nr packages/monitoring/charts-original/charts/istio-prometheus-operator/Chart.yaml packages/monitoring/charts-modified/charts/istio-prometheus-operator/Chart.yaml
 0a1,6
 > apiVersion: v1
 > description: A Helm chart for Kubernetes
-> name: prometheus-operator
+> name: istio-prometheus-operator
 > version: 1.1.0
 > appVersion: 2.3.1
 > tillerVersion: ">=2.7.2"
-diff -Nr packages/monitoring/charts-original/charts/istio/templates/_affinity.tpl packages/monitoring/charts-modified/charts/istio/templates/_affinity.tpl
+diff -Nr packages/monitoring/charts-original/charts/istio-prometheus-operator/templates/_affinity.tpl packages/monitoring/charts-modified/charts/istio-prometheus-operator/templates/_affinity.tpl
 0a1,93
 > {{/* affinity - https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ */}}
 > 
@@ -101,7 +101,7 @@ diff -Nr packages/monitoring/charts-original/charts/istio/templates/_affinity.tp
 >       weight: 100
 >     {{- end }}
 > {{- end }}
-diff -Nr packages/monitoring/charts-original/charts/istio/templates/prometheus.yaml packages/monitoring/charts-modified/charts/istio/templates/prometheus.yaml
+diff -Nr packages/monitoring/charts-original/charts/istio-prometheus-operator/templates/prometheus.yaml packages/monitoring/charts-modified/charts/istio-prometheus-operator/templates/prometheus.yaml
 0a1,137
 > {{- if .Values.prometheusOperator.createPrometheusResource }}
 > apiVersion: monitoring.coreos.com/v1
@@ -240,7 +240,7 @@ diff -Nr packages/monitoring/charts-original/charts/istio/templates/prometheus.y
 >     app: prometheus
 >     release: {{ .Release.Name }}
 > {{- end }}
-diff -Nr packages/monitoring/charts-original/charts/istio/templates/servicemonitors.yaml packages/monitoring/charts-modified/charts/istio/templates/servicemonitors.yaml
+diff -Nr packages/monitoring/charts-original/charts/istio-prometheus-operator/templates/servicemonitors.yaml packages/monitoring/charts-modified/charts/istio-prometheus-operator/templates/servicemonitors.yaml
 0a1,320
 > apiVersion: monitoring.coreos.com/v1
 > kind: ServiceMonitor
@@ -562,7 +562,7 @@ diff -Nr packages/monitoring/charts-original/charts/istio/templates/servicemonit
 >   selector:
 >     matchLabels:
 >       k8s-app: kubelet
-diff -Nr packages/monitoring/charts-original/charts/istio/values.yaml packages/monitoring/charts-modified/charts/istio/values.yaml
+diff -Nr packages/monitoring/charts-original/charts/istio-prometheus-operator/values.yaml packages/monitoring/charts-modified/charts/istio-prometheus-operator/values.yaml
 0a1,49
 > global:
 >   telemetryNamespace: istio-system

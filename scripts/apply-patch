@@ -2,14 +2,16 @@
 set -x
 set -e
 
-if [[ -f packages/${1}/package.yaml ]]; then
-  url=$(cat packages/${1}/package.yaml | yq r - base)
-  rm -rf packages/${1}/charts-modified
-  mkdir -p packages/${1}/charts-modified
-  curl -sLf ${url} | tar xvzf - -C packages/${1}/charts-modified --strip 1
-  cd packages/${1}/charts-modified
-  for f in packages/${1}/*.patch; do
-    patch -f -p3 < ../$(basename -- ${f})
-  done
-  cd ../../..
-fi
+for f in packages/*; do
+  if [[ -f ${f}/package.yaml ]]; then
+    url=$(cat ${f}/package.yaml | yq r - base)
+    rm -rf ${f}/charts-modified
+    mkdir -p ${f}/charts-modified
+    curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1
+    cd ${f}/charts-modified
+    for file in ${f}/*.patch; do
+      patch -f -p3 < ../$(basename -- ${file})
+    done
+    cd ../../..
+  fi
+done

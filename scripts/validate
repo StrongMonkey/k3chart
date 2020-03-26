@@ -3,9 +3,7 @@ set -e
 
 cd $(dirname $0)/..
 
-for f in packages/*; do
-  ./scripts/generate-patch $(basename -- ${f})
-done
+ ./scripts/generate-patch
 
 source ./scripts/version
 

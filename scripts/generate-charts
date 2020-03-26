@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+for f in packages/*; do
+    mkdir -p charts/$(basename -- ${f})
+    helm package ./packages/$(basename -- ${f})/charts-modified --destination charts/$(basename -- ${f})
+done
+
+helm repo index charts --url https://StrongMonkey.github.com/k3charts
