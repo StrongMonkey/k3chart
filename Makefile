@@ -1,7 +1,19 @@
 TARGETS := $(shell ls scripts)
 
-$(TARGETS):
-	bash -c ./scripts/$@
+ci:
+	./scripts/ci
+
+bootstrap:
+	./scripts/bootstrap
+
+charts:
+	./scripts/generate-charts
+
+patch:
+	./scripts/generate-patch
+
+validate:
+	./scripts/validate
 
 .DEFAULT_GOAL := ci
 

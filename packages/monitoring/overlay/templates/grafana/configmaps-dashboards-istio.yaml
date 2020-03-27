@@ -1,0 +1,14 @@
+{{- $files := .Files }}
+  {{- range $path, $bytes := .Files.Glob "dashboards-istio/*.json" }}
+  {{- $filename := trimSuffix (ext $path) (base $path) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: istio-grafana-configuration-dashboards-{{ $filename }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+data:
+  {{ base $path }}: '{{ $files.Get $path }}'
+---
+{{- end }}

@@ -11,6 +11,7 @@ for f in packages/*; do
     rm -rf ${f}/charts-modified
     mkdir -p ${f}/charts-modified
     curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1 > /dev/null 2>&1
+    cp -R ${f}/overlay/* ${f}/charts-modified
     for file in $(find ./${f} -type f -name "*.patch"); do
     	basename=$(basename -- ${file})
     	cd ${f}/charts-modified
