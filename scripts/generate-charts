@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
+set -e
 
 for f in packages/*; do
     mkdir -p docs/$(basename -- ${f})
+    mkdir -p ${f}/charts-modified
+    cp -R ${f}/charts/* ${f}/charts-modified
+    if [[ -d ${f}/overlay ]]; then
+    	cp -R ${f}/overlay/* ${f}/charts-modified
+    fi
     helm package ./packages/$(basename -- ${f})/charts-modified --destination docs/$(basename -- ${f})
+    git checkout docs/$(basename -- ${f})
+    rm -rf ${f}/charts-modified
 done
 
-helm repo index docs --url https://strongmonkey.github.com/k3chart
+helm repo index --merge ./docs/index.yaml --url https://strongmonkey.github.com/k3chart docs

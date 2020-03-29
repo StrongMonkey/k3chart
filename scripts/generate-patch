@@ -2,11 +2,17 @@
 
 for f in packages/*; do
   if [[ -f ${f}/package.yaml ]]; then
-    url=$(cat ${f}/package.yaml | yq r - base)
     mkdir -p ${f}/charts-original
-    curl -sLf ${url} | tar xvzf - -C ${f}/charts-original --strip 1 > /dev/null 2>&1
-    if [[ -d ${f}/charts-modified ]]; then
-      diff -Nr ${f}/charts-original ${f}/charts-modified > ${f}/$(basename -- ${f}).patch; true
+    url=$(cat ${f}/package.yaml | yq r - url)
+    subdirectory=$(cat ${f}/package.yaml | yq r - subdirectory)
+    fields=$(echo ${subdirectory} | awk -F'/' '{print NF}')
+    if [[ $fields -eq '0' ]]; then
+    	fields='1'
     fi
+    curl -sLf ${url} | tar xvzf - -C ${f}/charts-original --strip ${fields} ${subdirectory} > /dev/null 2>&1
+    if [[ -d ${f}/charts ]]; then
+      diff -Nr ${f}/charts-original ${f}/charts > ${f}/$(basename -- ${f}).patch; true
+    fi
+    rm -rf ${f}/charts-original
   fi
 done

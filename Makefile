@@ -12,8 +12,11 @@ charts:
 patch:
 	./scripts/generate-patch
 
-validate:
+validate: bootstrap
 	./scripts/validate
+
+rebase:
+	./scripts/rebase
 
 .DEFAULT_GOAL := ci
 

@@ -1,5 +1,0 @@
-monitoring:
-  namespace: k3s-monitoring
-
-security:
-  enabled: true

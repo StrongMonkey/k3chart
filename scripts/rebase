@@ -7,14 +7,18 @@ set -e
 
 for f in packages/*; do
   if [[ -f ${f}/package.yaml ]]; then
-    url=$(cat ${f}/package.yaml | yq r - base)
-    rm -rf ${f}/charts-modified
-    mkdir -p ${f}/charts-modified
-    curl -sLf ${url} | tar xvzf - -C ${f}/charts-modified --strip 1 > /dev/null 2>&1
-    cp -R ${f}/overlay/* ${f}/charts-modified
+    url=$(cat ${f}/package.yaml | yq r - url)
+    subdirectory=$(cat ${f}/package.yaml | yq r - subdirectory)
+    fields=$(echo ${subdirectory} | awk -F'/' '{print NF}')
+    if [[ $fields -eq '0' ]]; then
+    	fields='1'
+    fi
+    rm -rf ${f}/charts
+    mkdir -p ${f}/charts
+    curl -sLf ${url} | tar xvzf - -C ${f}/charts --strip ${fields} ${subdirectory} > /dev/null 2>&1
     for file in $(find ./${f} -type f -name "*.patch"); do
     	basename=$(basename -- ${file})
-    	cd ${f}/charts-modified
+    	cd ${f}/charts
       patch -p3 < ../$basename
       cd ../../../
     done
