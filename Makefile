@@ -6,16 +6,16 @@ ci:
 bootstrap:
 	./scripts/bootstrap
 
-charts:
+charts: bootstrap
 	./scripts/generate-charts
 
-patch:
+patch: bootstrap
 	./scripts/generate-patch
 
 validate: bootstrap
 	./scripts/validate
 
-rebase:
+rebase: bootstrap
 	./scripts/rebase
 
 .DEFAULT_GOAL := ci
