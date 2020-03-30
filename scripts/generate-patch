@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 set -e
 
 for f in packages/*; do

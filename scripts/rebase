@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -x
 set -e
 
 # rebase the patch with upsteam charts defined in package.yaml. Make sure patches still apply
