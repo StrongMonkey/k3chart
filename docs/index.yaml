@@ -2,7 +2,7 @@ apiVersion: v1
 entries:
   operator:
   - apiVersion: v1
-    created: "2020-03-30T10:03:48.12995518-07:00"
+    created: "2020-03-30T18:04:17.63544812Z"
     description: Helm chart for deploying Istio operator
     digest: 9160fb6f6a8c7d5a9e77c08d07f0c5c5fc9b1b359613790373788ed1bb54ab72
     icon: https://istio.io/favicons/android-192x192.png
@@ -18,7 +18,7 @@ entries:
   prometheus-operator:
   - apiVersion: v1
     appVersion: 0.37.0
-    created: "2020-03-30T10:03:48.154857409-07:00"
+    created: "2020-03-30T18:04:17.667301745Z"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -53,4 +53,4 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/monitoring/prometheus-operator-8.12.1.tgz
     version: 8.12.1
-generated: "2020-03-30T10:03:48.129562275-07:00"
+generated: "2020-03-30T18:04:17.622047651Z"
