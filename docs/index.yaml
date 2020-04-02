@@ -1,12 +1,34 @@
 apiVersion: v1
 entries:
+  argo-cd:
+  - apiVersion: v1
+    appVersion: 1.4.2
+    created: "2020-04-02T21:36:58.109505454Z"
+    description: A Helm chart for ArgoCD, a declarative, GitOps continuous delivery
+      tool for Kubernetes.
+    digest: f0b900dead5c7719e5727ce8d0b7fd27c22306fedfbfe655f8b413fb2996c9a8
+    home: https://github.com/argoproj/argo-helm
+    icon: https://raw.githubusercontent.com/argoproj/argo/master/docs/assets/argo.png
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    maintainers:
+    - name: alexec
+    - name: alexmt
+    - name: jessesuen
+    - name: seanson
+    name: argo-cd
+    urls:
+    - https://strongmonkey.github.com/k3chart/gitops/argo-cd-2.0.3.tgz
+    version: 2.0.3
   external-dns:
   - apiVersion: v1
     appVersion: 0.7.0
-    created: "2020-04-01T17:50:11.178954097-07:00"
+    created: "2020-04-02T21:36:58.136834756Z"
     description: ExternalDNS is a Kubernetes addon that configures public DNS servers
       with information about exposed Kubernetes services to make them discoverable.
-    digest: 87803737de3696cef5678d44f2bb56a455dabdcf3ceb39877955a7af264bcaee
+    digest: 5f88370f1c00ebadccdf710eb49719e0acbd4f3e9d4f1c2e2e86bbc958c95794
     home: https://github.com/kubernetes-sigs/external-dns
     icon: https://bitnami.com/assets/stacks/external-dns/img/external-dns-stack-110x117.png
     keywords:
@@ -26,9 +48,9 @@ entries:
   fluent-bit:
   - apiVersion: v1
     appVersion: 1.3.7
-    created: "2020-04-01T17:50:11.153171944-07:00"
+    created: "2020-04-02T21:36:58.111287454Z"
     description: Fast and Lightweight Log/Data Forwarder for Linux, BSD and OSX
-    digest: 82e80026af1a6d04632a0624e4aad3c6afeabcbd51e25a7ab9432c2d3a56f709
+    digest: bb260351bfc99cc845d617e4a957c468ebe75011c99f092665b8b3be9dcdf5a6
     home: https://fluentbit.io
     icon: https://fluentbit.io/assets/img/logo1-default.png
     keywords:
@@ -52,9 +74,9 @@ entries:
   gatekeeper-operator:
   - apiVersion: v1
     appVersion: v3.1.0-beta.8
-    created: "2020-04-01T17:50:11.17936171-07:00"
+    created: "2020-04-02T21:36:58.137264756Z"
     description: A Helm chart for Gatekeeper
-    digest: 187a6ff0a853abc3a942fb2e047efd568fae372f90a4e47462aff6b81986dee3
+    digest: 3629d4e6e51d5162a9cd208a67bb33fdf6234db57162d0d9ca5eee4feb54d659
     home: https://github.com/open-policy-agent/gatekeeper
     keywords:
     - open policy agent
@@ -66,7 +88,7 @@ entries:
     version: v3.1.0-beta.8
   operator:
   - apiVersion: v1
-    created: "2020-04-01T17:50:11.150451167-07:00"
+    created: "2020-04-02T21:36:58.109780154Z"
     description: Helm chart for deploying Istio operator
     digest: 9160fb6f6a8c7d5a9e77c08d07f0c5c5fc9b1b359613790373788ed1bb54ab72
     icon: https://istio.io/favicons/android-192x192.png
@@ -82,7 +104,7 @@ entries:
   prometheus-operator:
   - apiVersion: v1
     appVersion: 0.37.0
-    created: "2020-04-01T17:50:11.176346212-07:00"
+    created: "2020-04-02T21:36:58.134276455Z"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -120,10 +142,10 @@ entries:
   rancher-cis-benchmark:
   - apiVersion: v1
     appVersion: 0.1.0
-    created: "2020-04-01T17:50:11.176883785-07:00"
+    created: "2020-04-02T21:36:58.134914756Z"
     description: |
       Run CIS benhmark tests
-    digest: 30e84588fc792725eea11476df5ed3bb0f11f24faf5a2cd9f9605c910a361f9d
+    digest: bbe8d994dac7768bc7a7bae4896052be0a48962b09a3cb436d24ca4115bd711d
     home: https://github.com/rancher/system-charts/charts/rancher-cis-benchmark
     maintainers:
     - email: leodotcloud@gmail.com
@@ -137,9 +159,9 @@ entries:
   rancher-k3s-upgrader:
   - apiVersion: v1
     appVersion: v0.4.0
-    created: "2020-04-01T17:50:11.179716611-07:00"
+    created: "2020-04-02T21:36:58.137593556Z"
     description: Enables a k3s cluster to update itself by reacting to Plan CRs.
-    digest: e953802cb00919be3414c648ecd8776fa48e4b48d47a574cde2731dc9c9adc14
+    digest: 04ff451f2e776d5133cc9042fff63800a757315b90515fc3285b116533758054
     home: https://github.com/rancher/system-charts/charts/system-upgrade-controller
     name: rancher-k3s-upgrader
     sources:
@@ -147,4 +169,4 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/rancher-k3s-upgrader/rancher-k3s-upgrader-0.1.0.tgz
     version: 0.1.0
-generated: "2020-04-01T17:50:11.150109386-07:00"
+generated: "2020-04-02T21:36:58.099418653Z"
