@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -x
 
 for f in packages/*; do
     mkdir -p docs/$(basename -- ${f})
@@ -9,7 +10,7 @@ for f in packages/*; do
     	cp -R ${f}/overlay/* ${f}/charts-modified
     fi
     helm package ./packages/$(basename -- ${f})/charts-modified --destination docs/$(basename -- ${f})
-    git checkout docs/$(basename -- ${f})
+    git checkout docs/$(basename -- ${f}) || true
     rm -rf ${f}/charts-modified
 done
 

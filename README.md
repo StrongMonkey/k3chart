@@ -13,13 +13,19 @@ url: https://github.com/istio/istio/releases/download/1.5.1/istio-1.5.1-linux.ta
 subdirectory: istio-1.5.1/install/kubernetes/operator/operator-chart
 ```
 
+It also supports loading charts from git repository. For example,
+
+```yaml
+url: git@github.com:open-policy-agent/gatekeeper.git
+subdirectory: chart/gatekeeper-operator
+type: git
+```
+
 
 Any modifications or patches should be made into `package/${chart-name}/charts`. Once patches have been made. Run 
 
     `make patch` 
     
-to generate the correct patch files.
-
 Any overlay files can be added into `package/${chart-name}/overlays`. This can include `questions.yaml` and other files you want to add on top of upstream chart.
 
 To rebase patch based on the latest upstream chart, modified the package.yaml and points to the latest url. Then run
@@ -30,5 +36,11 @@ To generete index.yaml and charts tarball, run
 
     `make charts`
     
-CI will automatically upload patch files and tarball of charts. Commit will only need to update `package/${chart-name}/charts` and make sure patches are 
-up-to-date with the latest chart.
+This repo provides a [workflow](./.github/workflows) that automatically uploads patch files and tarball of charts. Commit will only need to update `package/${chart-name}/charts` and make sure patches are 
+up-to-date with the latest chart. It also automatically build github pages to serve `index.yaml` and artifacts of charts.
+
+To add this repo as a helm repo, run
+
+```text
+helm repo add https://strongmonkey.github.com/k3chart
+```

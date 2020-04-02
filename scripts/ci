@@ -2,5 +2,5 @@
 set -e
 
 ./scripts/bootstrap
-./scripts/validate
+./scripts/generate-patch
 ./scripts/generate-charts
