@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+set -x
 
 for f in packages/*; do
   if [[ -f ${f}/package.yaml ]]; then
@@ -20,7 +21,7 @@ for f in packages/*; do
     	curl -sLf ${url} | tar xvzf - -C ${f}/charts-original --strip ${fields} ${subdirectory} > /dev/null 2>&1
     fi
     if [[ -d ${f}/charts ]]; then
-      diff -Nr ${f}/charts-original ${f}/charts > ${f}/$(basename -- ${f}).patch; true
+      diff -Nr ${f}/charts-original ${f}/charts > ${f}/$(basename -- ${f}).patch || true
     fi
     rm -rf ${f}/charts-original
   fi

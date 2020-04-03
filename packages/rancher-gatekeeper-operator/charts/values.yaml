@@ -4,8 +4,8 @@ constraintViolationsLimit: 20
 auditFromCache: false
 logLevel: INFO
 image:
-  repository: quay.io/open-policy-agent/gatekeeper
-  release: v3.1.0-beta.8
+  repository: rancher/opa-gatekeeper
+  tag: v3.1.0-beta.8
   pullPolicy: IfNotPresent
 nodeSelector: {}
 tolerations: []
@@ -19,3 +19,8 @@ resources:
   requests:
     cpu: 100m
     memory: 256Mi
+global:
+  systemDefaultRegistry: ""
+  kubectl:
+    repository: rancher/istio-kubectl
+    tag: 1.4.6
