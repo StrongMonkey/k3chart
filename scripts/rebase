@@ -26,9 +26,7 @@ for f in packages/*; do
     fi
     for file in $(find ./${f} -type f -name "*.patch"); do
     	basename=$(basename -- ${file})
-    	cd ${f}/charts
-      patch -p3 < ../$basename
-      cd ../../../
+      patch -p3 -d ${f}/charts < ${f}/$basename
     done
   fi
 done
