@@ -3,7 +3,7 @@ entries:
   argo-cd:
   - apiVersion: v1
     appVersion: 1.4.2
-    created: "2020-04-02T21:36:58.109505454Z"
+    created: "2020-04-06T16:21:02.702133142Z"
     description: A Helm chart for ArgoCD, a declarative, GitOps continuous delivery
       tool for Kubernetes.
     digest: f0b900dead5c7719e5727ce8d0b7fd27c22306fedfbfe655f8b413fb2996c9a8
@@ -25,7 +25,7 @@ entries:
   external-dns:
   - apiVersion: v1
     appVersion: 0.7.0
-    created: "2020-04-02T21:36:58.136834756Z"
+    created: "2020-04-06T16:21:02.733624805Z"
     description: ExternalDNS is a Kubernetes addon that configures public DNS servers
       with information about exposed Kubernetes services to make them discoverable.
     digest: 5f88370f1c00ebadccdf710eb49719e0acbd4f3e9d4f1c2e2e86bbc958c95794
@@ -48,7 +48,7 @@ entries:
   fluent-bit:
   - apiVersion: v1
     appVersion: 1.3.7
-    created: "2020-04-02T21:36:58.111287454Z"
+    created: "2020-04-06T16:21:02.703643731Z"
     description: Fast and Lightweight Log/Data Forwarder for Linux, BSD and OSX
     digest: bb260351bfc99cc845d617e4a957c468ebe75011c99f092665b8b3be9dcdf5a6
     home: https://fluentbit.io
@@ -74,7 +74,7 @@ entries:
   gatekeeper-operator:
   - apiVersion: v1
     appVersion: v3.1.0-beta.8
-    created: "2020-04-02T21:36:58.137264756Z"
+    created: "2020-04-06T16:21:02.734189101Z"
     description: A Helm chart for Gatekeeper
     digest: 3629d4e6e51d5162a9cd208a67bb33fdf6234db57162d0d9ca5eee4feb54d659
     home: https://github.com/open-policy-agent/gatekeeper
@@ -88,7 +88,7 @@ entries:
     version: v3.1.0-beta.8
   operator:
   - apiVersion: v1
-    created: "2020-04-02T21:36:58.109780154Z"
+    created: "2020-04-06T16:21:02.70237974Z"
     description: Helm chart for deploying Istio operator
     digest: 9160fb6f6a8c7d5a9e77c08d07f0c5c5fc9b1b359613790373788ed1bb54ab72
     icon: https://istio.io/favicons/android-192x192.png
@@ -104,7 +104,7 @@ entries:
   prometheus-operator:
   - apiVersion: v1
     appVersion: 0.37.0
-    created: "2020-04-02T21:36:58.134276455Z"
+    created: "2020-04-06T16:21:02.730520728Z"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -142,7 +142,7 @@ entries:
   rancher-cis-benchmark:
   - apiVersion: v1
     appVersion: 0.1.0
-    created: "2020-04-02T21:36:58.134914756Z"
+    created: "2020-04-06T16:21:02.731259823Z"
     description: |
       Run CIS benhmark tests
     digest: bbe8d994dac7768bc7a7bae4896052be0a48962b09a3cb436d24ca4115bd711d
@@ -159,7 +159,7 @@ entries:
   rancher-k3s-upgrader:
   - apiVersion: v1
     appVersion: v0.4.0
-    created: "2020-04-02T21:36:58.137593556Z"
+    created: "2020-04-06T16:21:02.734608997Z"
     description: Enables a k3s cluster to update itself by reacting to Plan CRs.
     digest: 04ff451f2e776d5133cc9042fff63800a757315b90515fc3285b116533758054
     home: https://github.com/rancher/system-charts/charts/system-upgrade-controller
@@ -169,4 +169,4 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/rancher-k3s-upgrader/rancher-k3s-upgrader-0.1.0.tgz
     version: 0.1.0
-generated: "2020-04-02T21:36:58.099418653Z"
+generated: "2020-04-06T16:21:02.669811685Z"

@@ -1,28 +1,50 @@
-diff -Nr packages/rancher-gatekeeper-operator/charts-original/templates/gatekeeper.yaml packages/rancher-gatekeeper-operator/charts/templates/gatekeeper.yaml
-491c491
-<         image: '{{ .Values.image.repository }}:{{ .Values.image.release }}'
----
->         image: '{{ template "system_default_registry" . }}{{ .Values.image.repository }}:{{ .Values.image.tag }}'
-diff -Nr packages/rancher-gatekeeper-operator/charts-original/templates/_helpers.tpl packages/rancher-gatekeeper-operator/charts/templates/_helpers.tpl
-44a45,52
-> 
-> {{- define "system_default_registry" -}}
-> {{- if .Values.global.systemDefaultRegistry -}}
-> {{- printf "%s/" .Values.global.systemDefaultRegistry -}}
-> {{- else -}}
-> {{- "" -}}
-> {{- end -}}
-> {{- end -}}
-diff -Nr packages/rancher-gatekeeper-operator/charts-original/values.yaml packages/rancher-gatekeeper-operator/charts/values.yaml
-7,8c7,8
-<   repository: quay.io/open-policy-agent/gatekeeper
-<   release: v3.1.0-beta.8
----
->   repository: rancher/opa-gatekeeper
->   tag: v3.1.0-beta.8
-21a22,26
-> global:
->   systemDefaultRegistry: ""
->   kubectl:
->     repository: rancher/istio-kubectl
->     tag: 1.4.6
+diff -uNr packages/rancher-gatekeeper-operator/charts/templates/_helpers.tpl packages/rancher-gatekeeper-operator/charts-original/templates/_helpers.tpl
+--- packages/rancher-gatekeeper-operator/charts/templates/_helpers.tpl	2020-04-06 16:20:51.454478520 +0000
++++ packages/rancher-gatekeeper-operator/charts-original/templates/_helpers.tpl	2020-04-06 16:21:01.546386156 +0000
+@@ -42,11 +42,3 @@
+ {{- end }}
+ app.kubernetes.io/managed-by: {{ .Release.Service }}
+ {{- end -}}
+-
+-{{- define "system_default_registry" -}}
+-{{- if .Values.global.systemDefaultRegistry -}}
+-{{- printf "%s/" .Values.global.systemDefaultRegistry -}}
+-{{- else -}}
+-{{- "" -}}
+-{{- end -}}
+-{{- end -}}
+diff -uNr packages/rancher-gatekeeper-operator/charts/templates/gatekeeper.yaml packages/rancher-gatekeeper-operator/charts-original/templates/gatekeeper.yaml
+--- packages/rancher-gatekeeper-operator/charts/templates/gatekeeper.yaml	2020-04-06 16:20:51.454478520 +0000
++++ packages/rancher-gatekeeper-operator/charts-original/templates/gatekeeper.yaml	2020-04-06 16:21:01.546386156 +0000
+@@ -488,7 +488,7 @@
+           valueFrom:
+             fieldRef:
+               fieldPath: metadata.name
+-        image: '{{ template "system_default_registry" . }}{{ .Values.image.repository }}:{{ .Values.image.tag }}'
++        image: '{{ .Values.image.repository }}:{{ .Values.image.release }}'
+         imagePullPolicy: '{{ .Values.image.pullPolicy }}'
+         livenessProbe:
+           httpGet:
+diff -uNr packages/rancher-gatekeeper-operator/charts/values.yaml packages/rancher-gatekeeper-operator/charts-original/values.yaml
+--- packages/rancher-gatekeeper-operator/charts/values.yaml	2020-04-06 16:20:51.454478520 +0000
++++ packages/rancher-gatekeeper-operator/charts-original/values.yaml	2020-04-06 16:21:01.546386156 +0000
+@@ -4,8 +4,8 @@
+ auditFromCache: false
+ logLevel: INFO
+ image:
+-  repository: rancher/opa-gatekeeper
+-  tag: v3.1.0-beta.8
++  repository: quay.io/open-policy-agent/gatekeeper
++  release: v3.1.0-beta.8
+   pullPolicy: IfNotPresent
+ nodeSelector: {}
+ tolerations: []
+@@ -19,8 +19,3 @@
+   requests:
+     cpu: 100m
+     memory: 256Mi
+-global:
+-  systemDefaultRegistry: ""
+-  kubectl:
+-    repository: rancher/istio-kubectl
+-    tag: 1.4.6
