@@ -18,6 +18,9 @@ validate: bootstrap
 rebase: bootstrap
 	./scripts/rebase
 
+mirror: bootstrap
+	./scripts/image-mirror
+
 .DEFAULT_GOAL := ci
 
 .PHONY: $(TARGETS)
