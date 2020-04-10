@@ -9,7 +9,7 @@ prepare: bootstrap
 bootstrap:
 	./scripts/bootstrap
 
-charts: bootstrap
+charts: bootstrap prepare
 	./scripts/generate-charts
 
 patch: bootstrap
