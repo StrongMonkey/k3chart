@@ -14,7 +14,7 @@ for f in packages/*; do
 			packageVersion=$(yq r ${f}/package.yaml packageVersion)
 			yq w -i ${f}/charts/Chart.yaml 'version' "${version}-${packageVersion}"
 		fi
-		if [[ ! -f ${f}/checksum.txt ]]; then
+		if [[ ! -f ${f}/sha256sum.txt ]]; then
 			find ${f}/charts/* -type f -exec sha256sum '{}' \; > ${f}/sha256sum.txt
 		fi
 		sha256sum --check ${f}/sha256sum.txt
