@@ -3,7 +3,7 @@ set -e
 
 cd $(dirname $0)/..
 
-./scripts/rebase
+./scripts/prepare
 
 source ./scripts/version
 
