@@ -3,15 +3,22 @@ set -e
 set -x
 
 for f in packages/*; do
-    mkdir -p docs/$(basename -- ${f})
-    mkdir -p ${f}/charts-modified
-    cp -R ${f}/charts/* ${f}/charts-modified
-    if [[ -d ${f}/overlay ]]; then
-    	cp -R ${f}/overlay/* ${f}/charts-modified
-    fi
-    helm package ./packages/$(basename -- ${f})/charts-modified --destination docs/$(basename -- ${f})
-    git checkout docs/$(basename -- ${f}) || true
-    rm -rf ${f}/charts-modified
+  if [[ -f ${f}/package.yaml ]]; then
+  	if [[ -z $CHART || $CHART == $(basename -- ${f}) ]]; then
+		mkdir -p docs/$(basename -- ${f})
+		mkdir -p ${f}/charts-modified
+		cp -R ${f}/charts/* ${f}/charts-modified
+		if [[ -d ${f}/overlay ]]; then
+			cp -R ${f}/overlay/* ${f}/charts-modified
+		fi
+		version=$(yq r ${f}/charts/Chart.yaml version)
+		packageVersion=$(yq r ${f}/package.yaml packageVersion)
+		yq w -i ${f}/charts-modified/Chart.yaml 'version' "${version}-${packageVersion}"
+		helm package ./packages/$(basename -- ${f})/charts-modified --destination docs/$(basename -- ${f})
+		git checkout docs/$(basename -- ${f}) || true
+		rm -rf ${f}/charts-modified
+	fi
+  fi
 done
 
 helm repo index --merge ./docs/index.yaml --url https://strongmonkey.github.com/k3chart docs

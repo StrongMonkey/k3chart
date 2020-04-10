@@ -1,3 +1,5 @@
 url: https://github.com/argoproj/argo-helm.git
 type: git
 subdirectory: charts/argo-cd
+commit: 228c989f9cde23cbbd11a73c0af9f5de0768809a
+packageVersion: 00

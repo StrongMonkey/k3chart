@@ -1,4 +1,5 @@
 url: https://charts.bitnami.com/bitnami/external-dns-2.20.10.tgz
+packageVersion: 00
 imageMirror:
 - name: rancher/kubernetes-external-dns
   images:

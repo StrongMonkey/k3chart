@@ -1,0 +1,3255 @@
+diff -uNr packages/rancher-external-dns/charts-original/Chart.yaml packages/rancher-external-dns/charts/Chart.yaml
+--- packages/rancher-external-dns/charts-original/Chart.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/Chart.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,19 +1,14 @@
+ apiVersion: v1
+-appVersion: 0.7.1
+-description: ExternalDNS is a Kubernetes addon that configures public DNS servers
+-  with information about exposed Kubernetes services to make them discoverable.
++description: |
++  Configure external DNS servers (AWS Route53, Google CloudDNS and others)
++  for Kubernetes Ingresses and Services
++name: rancher-external-dns
++version: 0.1.0
++appVersion: 0.6.0
++home: https://github.com/kubernetes-incubator/external-dns
++sources:
++  - https://github.com/kubernetes-incubator/external-dns
+ engine: gotpl
+-home: https://github.com/kubernetes-sigs/external-dns
+-icon: https://bitnami.com/assets/stacks/external-dns/img/external-dns-stack-110x117.png
+-keywords:
+-- external-dns
+-- network
+-- dns
+ maintainers:
+-- email: containers@bitnami.com
+-  name: Bitnami
+-name: external-dns
+-sources:
+-- https://github.com/kubernetes-sigs/external-dns
+-- https://github.com/bitnami/bitnami-docker-external-dns
+-version: 2.20.10
++- name: rabadin
++  email: rabadin@cisco.com
+diff -uNr packages/rancher-external-dns/charts-original/.helmignore packages/rancher-external-dns/charts/.helmignore
+--- packages/rancher-external-dns/charts-original/.helmignore	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/.helmignore	1969-12-31 17:00:00.000000000 -0700
+@@ -1,21 +0,0 @@
+-# Patterns to ignore when building packages.
+-# This supports shell glob matching, relative path matching, and
+-# negation (prefixed with !). Only one pattern per line.
+-.DS_Store
+-# Common VCS dirs
+-.git/
+-.gitignore
+-.bzr/
+-.bzrignore
+-.hg/
+-.hgignore
+-.svn/
+-# Common backup files
+-*.swp
+-*.bak
+-*.tmp
+-*~
+-# Various IDEs
+-.project
+-.idea/
+-*.tmproj
+diff -uNr packages/rancher-external-dns/charts-original/README.md packages/rancher-external-dns/charts/README.md
+--- packages/rancher-external-dns/charts-original/README.md	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/README.md	2020-04-10 09:21:46.216002335 -0700
+@@ -1,272 +1,132 @@
+ # external-dns
+ 
+-[ExternalDNS](https://github.com/kubernetes-sigs/external-dns) is a Kubernetes addon that configures public DNS servers with information about exposed Kubernetes services to make them discoverable.
++## Chart Details
+ 
+-## TL;DR;
++This chart will do the following:
+ 
+-```console
+-$ helm repo add bitnami https://charts.bitnami.com/bitnami
+-$ helm install my-release bitnami/external-dns
+-```
+-
+-## Introduction
+-
+-This chart bootstraps a [ExternalDNS](https://github.com/bitnami/bitnami-docker-external-dns) deployment on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
++* Create a deployment of [external-dns] within your Kubernetes Cluster.
+ 
+-Bitnami charts can be used with [Kubeapps](https://kubeapps.com/) for deployment and management of Helm Charts in clusters. This chart has been tested to work with NGINX Ingress, cert-manager, fluentd and Prometheus on top of the [BKPR](https://kubeprod.io/).
++Currently this uses official images from release notes at https://github.com/kubernetes-sigs/external-dns, if this is a concern follow the steps in the [external-dns] documentation to compile the binary and make a container. Where the chart pulls the image from is fully configurable.
+ 
+-## Prerequisites
+-
+-- Kubernetes 1.12+
+-- Helm 2.11+ or Helm 3.0-beta3+
++> **Note**: If you want to use Chart version >1.1.0 with external-dns image <0.5.9 and use aws credentials, make sure to set `aws.credentialsPath: "/root/.aws"`
+ 
+ ## Installing the Chart
+ 
+ To install the chart with the release name `my-release`:
+ 
+ ```bash
+-$ helm install my-release bitnami/external-dns
++$ helm install --name my-release stable/external-dns
+ ```
+ 
+-The command deploys ExternalDNS on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.
+-
+-> **Tip**: List all releases using `helm list`
+-
+-## Uninstalling the Chart
+-
+-To uninstall/delete the `my-release` deployment:
+-
+-```console
+-$ helm delete my-release
+-```
++## Configuration
+ 
+-The command removes all the Kubernetes components associated with the chart and deletes the release.
++The following table lists the configurable parameters of the external-dns chart and their default values.
+ 
+-## Parameters
+ 
+-The following table lists the configurable parameters of the external-dns chart and their default values.
++| Parameter                          | Description                                                                                                                | Default                                            |
++| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
++| `annotationFilter`                 | Filter sources managed by external-dns via annotation using label selector semantics (default: all sources) (optional).    | `""`                                               |
++| `aws.accessKey`                    | set in `~/.aws/credentials` mounted through secret (optional).                                                             | `""`                                               |
++| `aws.secretKey`                    | set in `~/.aws/credentials` mounted through secret (optional).                                                             | `""`                                               |
++| `aws.credentialsPath`              | determine `mountPath` for `credentials` secret, defaults to `nobody` USER  home path `/.aws` (optional).                   | `"/.aws"`                                               |
++| `aws.region`                       | `AWS_DEFAULT_REGION` to set in the environment (optional).                                                                 | `us-east-1`                                        |
++| `aws.roleArn`                      | If assume role credentials are used then is the role_arn (arn:aws:iam::....). Leave empty if not used.                     | `""`                                               |
++| `aws.zoneType`                     | Filter for zones of this type (optional, options: public, private).                                                        | `""`                                               |
++| `azure.secretName`                 | Set the secret created for the SP for azure, should contain an azure.json file                                             | `""`                                               |
++| `cloudflare.apiKey`                | `CF_API_KEY` to set in the environment (optional).                                                                         | `""`                                               |
++| `cloudflare.email`                 | `CF_API_EMAIL` to set in the environment (optional).                                                                       | `""`                                               |
++| `cloudflare.proxied`                 | enable the proxy feature of Cloudflare (DDOS protection, CDN...) (optional).                                                                       | `true`                                               |
++| `designate.customCA.enabled`       | A switch to enable a custom CA for the Designate provider (optional)                                                       | false                                              |
++| `designate.customCA.content`       | The content of the Designate provider's custom CA                                                                          | ""                                                 |
++| `designate.customCA.directory`     | Directory in which to mount the Designate provider's custom CA                                                             | "/config/designate"                                |
++| `designate.customCA.filename`      | Filename of Designate provider's custom CA                                                                                 | "designate-ca.pem"                                 |
++| `domainFilters`                    | Limit possible target zones by domain suffixes (optional).                                                                 | `[]`                                               |
++| `dryRun`                           | When enabled, prints DNS record changes rather than actually performing them (optional).                                   | `false`                                            |
++| `extraArgs`                        | Optional object of extra args, as `name`: `value` pairs. Where the name is the command line arg to external-dns.           | `{}`                                               |
++| `extraEnv`                         | Optional array of extra environment variables. Supply a `name` property and either `value` of `valueFrom` for each.        | `[]`                                               |
++| `google.project`                   | When using the Google provider, specify the Google project (required when provider=google).                                | `""`                                               |
++| `google.serviceAccountSecret`      | When using the Google provider, optionally specify the existing secret which contains credentials.json if necessary.                | `""`                                               |
++| `google.serviceAccountKey`      | When using the Google provider, optionally specify the service account key JSON file. Must be provided when no existing secret is used, in this case a new secret will be created holding this service account               |  `""`                                               |
++| `image.repository`                  | Container image name (Including repository name if not `hub.docker.com`).                                                  | `registry.opensource.zalan.do/teapot/external-dns` |
++| `image.pullPolicy`                 | Container pull policy.                                                                                                     | `IfNotPresent`                                     |
++| `image.tag`                        | Container image tag.                                                                                                       | `v0.5.9`                                           |
++| `image.pullSecrets`                | Array of pull secret names                                                                                                 | `[]`                                               |
++| `infoblox.gridHost`                | When using the Infoblox provider, specify the Infoblox Grid host.                                                          | `""`                                               |
++| `infoblox.wapiUsername`            | When using the Infoblox provider, specify the Infoblox WAPI username.                                                      | `""`                                               |
++| `infoblox.wapiPassword`            | When using the Infoblox provider, specify the Infoblox WAPI password.                                                      | `""`                                               |
++| `infoblox.domainFilter`            | When using the Infoblox provider, optionally specify the domain.                                                           | `""`                                               |
++| `infoblox.noSslVerify`             | When using the Infoblox provider, optionally disable SSL verification.                                                     | `false`                                            |
++| `infoblox.wapiPort`                | When using the Infoblox provider, optionally specify the Infoblox WAPI port.                                               | `""`                                               |
++| `infoblox.wapiVersion`             | When using the Infoblox provider, optionally specify the Infoblox WAPI version.                                            | `""`                                               |
++| `infoblox.wapiConnectionPoolSize`  | When using the Infoblox provider, optionally specify the Infoblox WAPI request connection pool size.                       | `""`                                               |
++| `infoblox.wapiHttpTimeout`         | When using the Infoblox provider, optionally specify the Infoblox WAPI request timeout in seconds.                         | `""`                                               |
++| `logLevel`                         | Verbosity of the logs (options: panic, debug, info, warn, error, fatal)                                                    | `info`                                             |
++| `nodeSelector`                     | Node labels for pod assignment                                                                                             | `{}`                                               |
++| `podAnnotations`                   | Additional annotations to apply to the pod.                                                                                | `{}`                                               |
++| `policy`                           | Modify how DNS records are sychronized between sources and providers (options: sync, upsert-only ).                        | `upsert-only`                                      |
++| `provider`                         | The DNS provider where the DNS records will be created (options: aws, google, azure, cloudflare, digitalocean, inmemory ). | `aws`                                              |
++| `publishInternalServices`          | Allow external-dns to publish DNS records for ClusterIP services (optional).                                               | `false`                                            |
++| `rbac.create`                      | If true, create & use RBAC resources                                                                                       | `false`                                            |
++| `rbac.serviceAccountName`          | Existing ServiceAccount to use (ignored if rbac.create=true)                                                               | `default`                                          |
++| `interval`                         | Interval update period to use (options: txt, noop)                                                                                | `txt`                                              |
++| `registry`                         | Registry method to use (options: txt, noop)                                                                                | `txt`                                              |
++| `resources`                        | CPU/Memory resource requests/limits.                                                                                       | `{}`                                               |
++| `securityContext`                  | Security options the pod should run with. [More info](https://kubernetes.io/docs/concepts/policy/security-context/)        | `{}`                                               |
++| `priorityClassName`                | priorityClassName                                                                                                          | `""`                                               |
++| `service.annotations`              | Annotations to add to service                                                                                              | `{}`                                               |
++| `service.clusterIP`                | IP address to assign to service                                                                                            | `""`                                               |
++| `service.externalIPs`              | Service external IP addresses                                                                                              | `[]`                                               |
++| `service.loadBalancerIP`           | IP address to assign to load balancer (if supported)                                                                       | `""`                                               |
++| `service.loadBalancerSourceRanges` | List of IP CIDRs allowed access to load balancer (if supported)                                                            | `[]`                                               |
++| `service.servicePort`              | Service port to expose                                                                                                     | `7979`                                             |
++| `service.type`                     | Type of service to create                                                                                                  | `ClusterIP`                                        |
++| `sources`                          | List of resource types to monitor, possible values are fake, service or ingress.                                           | `[service, ingress]`                               |
++| `tolerations`                      | List of node taints to tolerate (requires Kubernetes >= 1.6)                                                               | `[]`                                               |
++| `affinity`                         | List of affinities (requires Kubernetes >=1.6)                                                                             | `{}`                                               |
++| `txtOwnerId`                       | When using the TXT registry, a name that identifies this instance of ExternalDNS (optional)                                | `"default"`                                        |
++| `txtPrefix`                        | When using the TXT registry, a prefix for ownership records that avoids collision with CNAME entries (optional)            | `""`                                               |
++| `zoneIdFilters`                    | Limit possible target zones by zone id (optional)                                                                          | `[]`                                               |
+ 
+ 
+-| Parameter                           | Description                                                                                              | Default                                                     |
+-| ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+-| `global.imageRegistry`              | Global Docker image registry                                                                             | `nil`                                                       |
+-| `global.imagePullSecrets`           | Global Docker registry secret names as an array                                                          | `[]` (does not add image pull secrets to deployed pods)     |
+-| `image.registry`                    | ExternalDNS image registry                                                                               | `docker.io`                                                 |
+-| `image.repository`                  | ExternalDNS Image name                                                                                   | `bitnami/external-dns`                                      |
+-| `image.tag`                         | ExternalDNS Image tag                                                                                    | `{TAG_NAME}`                                                |
+-| `image.pullPolicy`                  | ExternalDNS image pull policy                                                                            | `IfNotPresent`                                              |
+-| `image.pullSecrets`                 | Specify docker-registry secret names as an array                                                         | `[]` (does not add image pull secrets to deployed pods)     |
+-| `nameOverride`                      | String to partially override external-dns.fullname template with a string (will prepend the release name)| `nil`                                                       |
+-| `fullnameOverride`                  | String to fully override external-dns.fullname template with a string                                    | `nil`                                                       |
+-| `sources`                           | K8s resources type to be observed for new DNS entries by ExternalDNS                                     | `[service, ingress]`                                        |
+-| `provider`                          | DNS provider where the DNS records will be created (mandatory) (options: aws, azure, google, ...)        | `aws`                                                       |
+-| `namespace`                         | Limit sources of endpoints to a specific namespace (default: all namespaces)                             | `""`                                                        |
+-| `fqdnTemplates`                     | Templated strings that are used to generate DNS names from sources that don't define a hostname themselves   | `[]`                                                    |
+-| `combineFQDNAnnotation`             | Combine FQDN template and annotations instead of overwriting                                             | `false`                                                     |
+-| `ignoreHostnameAnnotation`          | Ignore hostname annotation when generating DNS names, valid only when fqdn-template is set               | `false`                                                     |
+-| `publishInternalServices`           | Whether to publish DNS records for ClusterIP services or not                                             | `false`                                                     |
+-| `publishHostIP`                     | Allow external-dns to publish host-ip for headless services                                              | `false`                                                     |
+-| `serviceTypeFilter`                 | The service types to take care about (default: all, options: ClusterIP, NodePort, LoadBalancer, ExternalName)   | `[]`                                                 |
+-| `aws.credentials.accessKey`         | When using the AWS provider, set `aws_access_key_id` in the AWS credentials (optional)                   | `""`                                                        |
+-| `aws.credentials.secretKey`         | When using the AWS provider, set `aws_secret_access_key` in the AWS credentials (optional)               | `""`                                                        |
+-| `aws.credentials.mountPath`         | When using the AWS provider, determine `mountPath` for `credentials` secret                              | `"/.aws"`                                                   |
+-| `aws.region`                        | When using the AWS provider, `AWS_DEFAULT_REGION` to set in the environment (optional)                   | `us-east-1`                                                 |
+-| `aws.zoneType`                      | When using the AWS provider, filter for zones of this type (optional, options: public, private)          | `""`                                                        |
+-| `aws.assumeRoleArn`                 | When using the AWS provider, assume role by specifying --aws-assume-role to the external-dns daemon      | `""`                                                        |
+-| `aws.batchChangeSize`               | When using the AWS provider, set the maximum number of changes that will be applied in each batch        | `1000`                                                      |
+-| `aws.zoneTags`                      | When using the AWS provider, filter for zones with these tags                                            | `[]`                                                        |
+-| `aws.preferCNAME`                   | When using the AWS provider, replaces Alias recors with CNAME (options: true, false)                     | `[]`                                                        |
+-| `aws.evaluateTargetHealth`          | When using the AWS provider, sets the evaluate target health flag (options: true, false)                 | `[true, false]`                                             |
+-| `azure.secretName`                  | When using the Azure provider, set the secret containing the `azure.json` file                           | `""`                                                        |
+-| `azure.cloud`                       | When using the Azure provider, set the Azure Clound                                                      | `""`                                                        |
+-| `azure.resourceGroup`               | When using the Azure provider, set the Azure Resource Group                                              | `""`                                                        |
+-| `azure.tenantId`                    | When using the Azure provider, set the Azure Tenant ID                                                   | `""`                                                        |
+-| `azure.subscriptionId`              | When using the Azure provider, set the Azure Subscription ID                                             | `""`                                                        |
+-| `azure.aadClientId`                 | When using the Azure provider, set the Azure AAD Client ID                                               | `""`                                                        |
+-| `azure.aadClientSecret`             | When using the Azure provider, set the Azure AAD Client Secret                                           | `""`                                                        |
+-| `azure.useManagedIdentityExtension` | When using the Azure provider, set if you use Azure MSI                                                  | `""`                                                        |
+-| `cloudflare.apiToken`               | When using the Cloudflare provider, `CF_API_TOKEN` to set (optional)                                     | `""`                                                        |
+-| `cloudflare.apiKey`                 | When using the Cloudflare provider, `CF_API_KEY` to set (optional)                                       | `""`                                                        |
+-| `cloudflare.email`                  | When using the Cloudflare provider, `CF_API_EMAIL` to set (optional)                                     | `""`                                                        |
+-| `cloudflare.proxied`                | When using the Cloudflare provider, enable the proxy feature (DDOS protection, CDN...) (optional)        | `true`                                                      |
+-| `coredns.etcdEndpoints`             | When using the CoreDNS provider, set etcd backend endpoints (comma-separated list)                       | `"http://etcd-extdns:2379"`                                 |
+-| `coredns.etcdTLS.enabled`           | When using the CoreDNS provider, enable secure communication with etcd                                   | `false`                                                     |
+-| `coredns.etcdTLS.secretName`        | When using the CoreDNS provider, specify a name of existing Secret with etcd certs and keys              | `"etcd-client-certs"`                                       |
+-| `coredns.etcdTLS.mountPath`         | When using the CoreDNS provider, set destination dir to mount data from `coredns.etcdTLS.secretName` to  | `"/etc/coredns/tls/etcd"`                                   |
+-| `coredns.etcdTLS.caFilename`        | When using the CoreDNS provider, specify CA PEM file name from the `coredns.etcdTLS.secretName`          | `"ca.crt"`                                                  |
+-| `coredns.etcdTLS.certFilename`      | When using the CoreDNS provider, specify cert PEM file name from the `coredns.etcdTLS.secretName`        | `"cert.pem"`                                                |
+-| `coredns.etcdTLS.keyFilename`       | When using the CoreDNS provider, specify private key PEM file name from the `coredns.etcdTLS.secretName` | `"key.pem"`                                                 |
+-| `designate.authUrl`                 | When using the Designate provider, specify the OpenStack authentication Url. (optional)                  | `none`                                                      |
+-| `designate.customCA.enabled`        | When using the Designate provider, enable a custom CA (optional)                                         | false                                                       |
+-| `designate.customCA.content`        | When using the Designate provider, set the content of the custom CA                                      | ""                                                          |
+-| `designate.customCA.mountPath`      | When using the Designate provider, set the mountPath in which to mount the custom CA configuration       | "/config/designate"                                         |
+-| `designate.customCA.filename`       | When using the Designate provider, set the custom CA configuration filename                              | "designate-ca.pem"                                          |
+-| `designate.customCAHostPath`        | When using the Designate provider, use a CA file already on the host to validate Openstack APIs.  This conflicts with `designate.customCA.enabled` | `none`            |
+-| `designate.password`                | When using the Designate provider, specify the OpenStack authentication password. (optional)             | `none`                                                      |
+-| `designate.projectName`              | When using the Designate provider, specify the OpenStack project name. (optional)                        | `none`                                                      |
+-| `designate.regionName`               | When using the Designate provider, specify the OpenStack region name. (optional)                         | `none`                                                      |
+-| `designate.userDomainName`          | When using the Designate provider, specify the OpenStack user domain name. (optional)                    | `none`                                                      |
+-| `designate.username`                | When using the Designate provider, specify the OpenStack authentication username. (optional)             | `none`                                                      |
+-| `digitalocean.apiToken`             | When using the DigitalOcean provider, `DO_TOKEN` to set (optional)                                       | `""`                                                        |
+-| `google.project`                    | When using the Google provider, specify the Google project (required when provider=google)               | `""`                                                        |
+-| `google.serviceAccountSecret`       | When using the Google provider, specify the existing secret which contains credentials.json (optional)   | `""`                                                        |
+-| `google.serviceAccountSecretKey`    | When using the Google provider with an existing secret, specify the key name (optional)                  | `"credentials.json"`                                        |
+-| `google.serviceAccountKey`          | When using the Google provider, specify the service account key JSON file. (required when `google.serviceAccountSecret` is not provided. In this case a new secret will be created holding this service account | `""`    |
+-| `infoblox.gridHost`                 | When using the Infoblox provider, specify the Infoblox Grid host (required when provider=infoblox)       | `""`                                                        |
+-| `infoblox.wapiUsername`             | When using the Infoblox provider, specify the Infoblox WAPI username                                     | `"admin"`                                                   |
+-| `infoblox.wapiPassword`             | When using the Infoblox provider, specify the Infoblox WAPI password (required when provider=infoblox)   | `""`                                                        |
+-| `infoblox.domainFilter`             | When using the Infoblox provider, specify the domain (optional)                                          | `""`                                                        |
+-| `infoblox.noSslVerify`              | When using the Infoblox provider, disable SSL verification (optional)                                    | `false`                                                     |
+-| `infoblox.wapiPort`                 | When using the Infoblox provider, specify the Infoblox WAPI port (optional)                              | `""`                                                        |
+-| `infoblox.wapiVersion`              | When using the Infoblox provider, specify the Infoblox WAPI version (optional)                           | `""`                                                        |
+-| `infoblox.wapiConnectionPoolSize`   | When using the Infoblox provider, specify the Infoblox WAPI request connection pool size (optional)      | `""`                                                        |
+-| `infoblox.wapiHttpTimeout`          | When using the Infoblox provider, specify the Infoblox WAPI request timeout in seconds (optional)        | `""`                                                        |
+-| `rfc2136.host`                      | When using the rfc2136 provider, specify the RFC2136 host (required when provider=rfc2136)               | `""`                                                        |
+-| `rfc2136.port`                      | When using the rfc2136 provider, specify the RFC2136 port (optional)                                     | `53`                                                        |
+-| `rfc2136.zone`                      | When using the rfc2136 provider, specify the zone (required when provider=rfc2136)                       | `""`                                                        |
+-| `rfc2136.tsigSecret`                | When using the rfc2136 provider, specify the tsig secret to enable security (optional)                   | `""`                                                        |
+-| `rfc2136.tsigKeyname`               | When using the rfc2136 provider, specify the tsig keyname to enable security (optional)                  | `"externaldns-key"`                                         |
+-| `rfc2136.tsigSecretAlg`             | When using the rfc2136 provider, specify the tsig secret to enable security (optional)                   | `"hmac-sha256"`                                             |
+-| `rfc2136.tsigAxfr`                  | When using the rfc2136 provider, enable AFXR to enable security (optional)                               | `true`                                                      |
+-| `pdns.apiUrl`                       | When using the PowerDNS provider, specify the API URL of the server.                                     | `""`                                                        |
+-| `pdns.apiPort`                      | When using the PowerDNS provider, specify the API port of the server.                                    | `8081`                                                      |
+-| `pdns.apiKey`                       | When using the PowerDNS provider, specify the API key of the server.                                     | `""`                                                        |
+-| `transip.account`                   | When using the TransIP provider, specify the account name.                                               | `""`                                                        |
+-| `transip.apiKey`                    | When using the TransIP provider, specify the API key to use.                                             | `""`                                                        |
+-| `annotationFilter`                  | Filter sources managed by external-dns via annotation using label selector (optional)                    | `""`                                                        |
+-| `domainFilters`                     | Limit possible target zones by domain suffixes (optional)                                                | `[]`                                                        |
+-| `zoneIdFilters`                     | Limit possible target zones by zone id (optional)                                                        | `[]`                                                        |
+-| `crd.create`                        | Install and use the integrated DNSEndpoint CRD                                                           | `false`                                                     |
+-| `crd.apiversion`                    | Sets the API version for the CRD to watch                                                                | `""`                                                        |
+-| `crd.kind`                          | Sets the kind for the CRD to watch                                                                       | `""`                                                        |
+-| `dryRun`                            | When enabled, prints DNS record changes rather than actually performing them (optional)                  | `false`                                                     |
+-| `logLevel`                          | Verbosity of the logs (options: panic, debug, info, warn, error, fatal)                                  | `info`                                                      |
+-| `logFormat`                         | Which format to output logs in (options: text, json)                                                     | `text`                                                      |
+-| `interval`                          | Interval update period to use                                                                            | `1m`                                                        |
+-| `triggerLoopOnEvent`                | When enabled, triggers run loop on create/update/delete events in addition to regular interval (optional)| `false`                                                     |
+-| `istioIngressGateways`              | The fully-qualified name of the Istio ingress gateway services .                                         | `""`                                                        |
+-| `policy`                            | Modify how DNS records are sychronized between sources and providers (options: sync, upsert-only )       | `upsert-only`                                               |
+-| `registry`                          | Registry method to use (options: txt, noop)                                                              | `txt`                                                       |
+-| `txtOwnerId`                        | When using the TXT registry, a name that identifies this instance of ExternalDNS (optional)              | `"default"`                                                 |
+-| `txtPrefix`                         | When using the TXT registry, a prefix for ownership records that avoids collision with CNAME entries (optional) | `""`                                                 |
+-| `extraArgs`                         | Extra arguments to be passed to external-dns                                                             | `{}`                                                        |
+-| `extraEnv`                          | Extra environment variables to be passed to external-dns                                                 | `[]`                                                        |
+-| `replicas`                          | Desired number of ExternalDNS replicas                                                                   | `1`                                                         |
+-| `affinity`                          | Affinity for pod assignment (this value is evaluated as a template)                                      | `{}`                                                        |
+-| `nodeSelector`                      | Node labels for pod assignment (this value is evaluated as a template)                                   | `{}`                                                        |
+-| `tolerations`                       | Tolerations for pod assignment (this value is evaluated as a template)                                   | `[]`                                                        |
+-| `podAnnotations`                    | Additional annotations to apply to the pod.                                                              | `{}`                                                        |
+-| `podLabels`                         | Additional labels to be added to pods                                                                    | `{}`                                                          |
+-| `podSecurityContext.fsGroup`        | Group ID for the container                                                                               | `1001`                                                      |
+-| `podSecurityContext.runAsUser`      | User ID for the container                                                                                | `1001`                                                      |
+-| `priorityClassName`                 | priorityClassName                                                                                        | `""`                                                        |
+-| `securityContext`                   | Security context for the container                                                                       | `{}`                                                        |
+-| `service.type`                      | Kubernetes Service type                                                                                  | `ClusterIP`                                                 |
+-| `service.port`                      | ExternalDNS client port                                                                                  | `7979`                                                      |
+-| `service.nodePort`                  | Port to bind to for NodePort service type (client port)                                                  | `nil`                                                       |
+-| `service.clusterIP`                 | IP address to assign to service                                                                          | `""`                                                        |
+-| `service.externalIPs`               | Service external IP addresses                                                                            | `[]`                                                        |
+-| `service.loadBalancerIP`            | IP address to assign to load balancer (if supported)                                                     | `""`                                                        |
+-| `service.loadBalancerSourceRanges`  | List of IP CIDRs allowed access to load balancer (if supported)                                          | `[]`                                                        |
+-| `service.annotations`               | Annotations to add to service                                                                            | `{}`                                                        |
+-| `rbac.create`                       | Weather to create & use RBAC resources or not                                                            | `true`                                                      |
+-| `rbac.serviceAccountCreate`         | Determine whether a Service Account should be created or it should reuse a exiting one.                  | `true`                                                      |
+-| `rbac.serviceAccountName`           | ServiceAccount to use. A name is generated using the external-dns.fullname template if it is not set     | `nil`                                                       |
+-| `rbac.serviceAccountAnnotations`    | Additional Service Account annotations                                                                   | `{}`                                                        |
+-| `rbac.apiVersion`                   | Version of the RBAC API                                                                                  | `v1beta1`                                                   |
+-| `rbac.pspEnabled`                   | PodSecurityPolicy                                                                                        | `false`                                                     |
+-| `resources`                         | CPU/Memory resource requests/limits.                                                                     | `{}`                                                        |
+-| `livenessProbe`                     | Deployment Liveness Probe                                                                                | See `values.yaml`                                           |
+-| `readinessProbe`                    | Deployment Readiness Probe                                                                               | See `values.yaml`                                           |
+-| `extraVolumes`                      | A list of volumes to be added to the pod                                                                 | `[]`                                                        |
+-| `extraVolumeMounts`                 | A list of volume mounts to be added to the pod                                                           | `[]`                                                        |
+-| `metrics.enabled`                   | Enable prometheus to access external-dns metrics endpoint                                                | `false`                                                     |
+-| `metrics.podAnnotations`            | Annotations for enabling prometheus to access the metrics endpoint                                       |                                                             |
+-| `metrics.serviceMonitor.enabled`    | Create ServiceMonitor object                                                                             | `false`                                                     |
+-| `metrics.serviceMonitor.selector`   | Additional labels for ServiceMonitor object                                                              | `{}`                                                        |
+-| `metrics.serviceMonitor.interval`   | Interval at which metrics should be scraped                                                              | `30s`                                                       |
+-| `metrics.serviceMonitor.scrapeTimeout`   | Timeout after which the scrape is ended                                                             | `30s`                                                       |
+-
+-Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
+-
+-```console
+-$ helm install my-release \
+-  --set provider=aws bitnami/external-dns
+-```
++Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
+ 
+ Alternatively, a YAML file that specifies the values for the parameters can be provided while installing the chart. For example,
+ 
+ ```bash
+-$ helm install my-release -f values.yaml bitnami/external-dns
++$ helm install --name my-release -f values.yaml stable/external-dns
+ ```
+ 
+ > **Tip**: You can use the default [values.yaml](values.yaml)
+ 
+-## Configuration and installation details
+-
+-### [Rolling VS Immutable tags](https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/)
+-
+-It is strongly recommended to use immutable tags in a production environment. This ensures your deployment does not change automatically if the same tag is updated with a different image.
+-
+-Bitnami will release a new chart updating its containers if a new version of the main container, significant changes, or critical vulnerabilities exist.
+-
+-### Production configuration
+-
+-This chart includes a `values-production.yaml` file where you can find some parameters oriented to production configuration in comparison to the regular `values.yaml`. You can use this file instead of the default one.
+-
+-- Desired number of ExternalDNS replicas:
+-```diff
+-- replicas: 1
+-+ replicas: 3
+-```
+-
+-- Enable prometheus to access external-dns metrics endpoint:
+-```diff
+-- metrics.enabled: false
+-+ metrics.enabled: true
+-```
+-
+-## Tutorials
+-
+-Find information about the requirements for each DNS provider on the link below:
+-
+-- [ExternalDNS Tutorials](https://github.com/kubernetes-sigs/external-dns/tree/master/docs/tutorials)
+-
+-For instance, to install ExternalDNS on AWS, you need to:
+-
+-- Provide the K8s worker node which runs the cluster autoscaler with a minimum IAM policy (check [IAM permissions docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md#iam-permissions) for more information).
+-- Setup a hosted zone on Route53 and annotate the Hosted Zone ID and its associated "nameservers" as described on [these docs](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/aws.md#set-up-a-hosted-zone).
+-- Install ExternalDNS chart using the command below:
+-
+-> Note: replace the placeholder HOSTED_ZONE_IDENTIFIER and HOSTED_ZONE_NAME, with your hosted zoned identifier and name, respectively.
+-
+-```bash
+-$ helm install my-release \
+-  --set provider=aws \
+-  --set aws.zoneType=public \
+-  --set txtOwnerId=HOSTED_ZONE_IDENTIFIER \
+-  --set domainFilters[0]=HOSTED_ZONE_NAME \
+-  bitnami/external-dns
+-```
+-
+-## Upgrading
+-
+-### To 2.0.0
+-
+-Backwards compatibility is not guaranteed unless you modify the labels used on the chart's deployments.
+-Use the workaround below to upgrade from versions previous to 1.0.0. The following example assumes that the release name is `my-release`:
+-
+-```console
+-$ kubectl delete deployment my-release-external-dns
+-$ helm upgrade my-release bitnami/external-dns
+-```
+-
+-Other mayor changes included in this major version are:
++## IAM Permissions
+ 
+-- Default image changes from `registry.opensource.zalan.do/teapot/external-dns` to `bitnami/external-dns`.
+-- The parameters below are renamed:
+-  - `aws.secretKey` -> `aws.credentials.secretKey`
+-  - `aws.accessKey` -> `aws.credentials.accessKey`
+-  - `aws.credentialsPath` -> `aws.credentials.mountPath`
+-  - `designate.customCA.directory` -> `designate.customCA.mountPath`
+-- Support to Prometheus metrics is added.
++```json
++{
++ "Version": "2012-10-17",
++ "Statement": [
++   {
++     "Effect": "Allow",
++     "Action": [
++       "route53:ChangeResourceRecordSets"
++     ],
++     "Resource": [
++       "arn:aws:route53:::hostedzone/*"
++     ]
++   },
++   {
++     "Effect": "Allow",
++     "Action": [
++       "route53:ListHostedZones",
++       "route53:ListResourceRecordSets"
++     ],
++     "Resource": [
++       "*"
++     ]
++   }
++ ]
++}
++```
++
++[external-dns]: https://github.com/kubernetes-incubator/external-dns
++[Zalando]: https://zalando.github.io/
++[getting-started]: https://github.com/kubernetes-incubator/external-dns/blob/master/README.md#getting-started
+diff -uNr packages/rancher-external-dns/charts-original/templates/clusterrolebinding.yaml packages/rancher-external-dns/charts/templates/clusterrolebinding.yaml
+--- packages/rancher-external-dns/charts-original/templates/clusterrolebinding.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/clusterrolebinding.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,15 +1,16 @@
+-{{- if .Values.rbac.create }}
++{{- if .Values.rbac.create -}}
+ apiVersion: rbac.authorization.k8s.io/{{ .Values.rbac.apiVersion }}
+ kind: ClusterRoleBinding
+ metadata:
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+   kind: ClusterRole
+   name: {{ template "external-dns.fullname" . }}
+ subjects:
+   - kind: ServiceAccount
+-    name: {{ template "external-dns.serviceAccountName" . }}
++    name: {{ template "external-dns.fullname" . }}
+     namespace: {{ .Release.Namespace }}
+-{{- end }}
++{{- end -}}
+diff -uNr packages/rancher-external-dns/charts-original/templates/clusterrole.yaml packages/rancher-external-dns/charts/templates/clusterrole.yaml
+--- packages/rancher-external-dns/charts-original/templates/clusterrole.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/clusterrole.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,9 +1,10 @@
+-{{- if .Values.rbac.create }}
++{{- if .Values.rbac.create -}}
+ apiVersion: rbac.authorization.k8s.io/{{ .Values.rbac.apiVersion }}
+ kind: ClusterRole
+ metadata:
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+ rules:
+   - apiGroups:
+       - ""
+@@ -11,14 +12,12 @@
+       - services
+       - pods
+       - nodes
+-      - endpoints
+     verbs:
+       - get
+       - list
+       - watch
+   - apiGroups:
+       - extensions
+-      - "networking.k8s.io"
+     resources:
+       - ingresses
+     verbs:
+@@ -33,36 +32,4 @@
+       - get
+       - list
+       - watch
+-  {{- if or .Values.crd.create .Values.crd.apiversion }}
+-  - apiGroups:
+-      {{- if .Values.crd.create }}
+-      - externaldns.k8s.io
+-      {{- else }}
+-      - {{ $api := splitn "/" 2 .Values.crd.apiversion }}{{ $api._0 }}
+-      {{- end }}
+-    resources:
+-      {{- if .Values.crd.create }}
+-      - dnsendpoints
+-      {{- else }}
+-      - {{ printf "%ss" (.Values.crd.kind | lower) }}
+-      {{- end }}
+-    verbs:
+-      - get
+-      - list
+-      - watch
+-  - apiGroups:
+-      {{- if .Values.crd.create }}
+-      - externaldns.k8s.io
+-      {{- else }}
+-      - {{ $api := splitn "/" 2 .Values.crd.apiversion }}{{ $api._0 }}
+-      {{- end }}
+-    resources:
+-      {{- if .Values.crd.create }}
+-      - dnsendpoints/status
+-      {{- else }}
+-      - {{ printf "%ss/status" (.Values.crd.kind | lower) }}
+-      {{- end }}
+-    verbs:
+-      - update
+-  {{- end }}
+-{{- end }}
++{{- end -}}
+diff -uNr packages/rancher-external-dns/charts-original/templates/configmap.yaml packages/rancher-external-dns/charts/templates/configmap.yaml
+--- packages/rancher-external-dns/charts-original/templates/configmap.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/configmap.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -3,7 +3,8 @@
+ kind: ConfigMap
+ metadata:
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+ data:
+   {{ .Values.designate.customCA.filename }}: |
+ {{ .Values.designate.customCA.content | indent 4 }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/crd.yaml packages/rancher-external-dns/charts/templates/crd.yaml
+--- packages/rancher-external-dns/charts-original/templates/crd.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/crd.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,64 +0,0 @@
+-{{- if .Values.crd.create }}
+-apiVersion: apiextensions.k8s.io/v1beta1
+-kind: CustomResourceDefinition
+-metadata:
+-  creationTimestamp: null
+-  labels:
+-    api: externaldns
+-    kubebuilder.k8s.io: 1.0.0
+-  name: dnsendpoints.externaldns.k8s.io
+-spec:
+-  group: externaldns.k8s.io
+-  names:
+-    kind: DNSEndpoint
+-    plural: dnsendpoints
+-  scope: Namespaced
+-  subresources:
+-    status: {}
+-  validation:
+-    openAPIV3Schema:
+-      properties:
+-        apiVersion:
+-          type: string
+-        kind:
+-          type: string
+-        metadata:
+-          type: object
+-        spec:
+-          properties:
+-            endpoints:
+-              items:
+-                properties:
+-                  dnsName:
+-                    type: string
+-                  labels:
+-                    type: object
+-                  providerSpecific:
+-                    items:
+-                      properties:
+-                        name: 
+-                          type: string
+-                        value:
+-                          type: string
+-                      type: object
+-                    type: array
+-                  recordTTL:
+-                    format: int64
+-                    type: integer
+-                  recordType:
+-                    type: string
+-                  targets:
+-                    items:
+-                      type: string
+-                    type: array
+-                type: object
+-              type: array
+-          type: object
+-        status:
+-          properties:
+-            observedGeneration:
+-              format: int64
+-              type: integer
+-          type: object
+-  version: v1alpha1
+-{{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/deployment.yaml packages/rancher-external-dns/charts/templates/deployment.yaml
+--- packages/rancher-external-dns/charts-original/templates/deployment.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/deployment.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,490 +1,263 @@
+-apiVersion: apps/v1
++apiVersion: {{ template "deployment_api_version" . }}
+ kind: Deployment
+ metadata:
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+ spec:
+-  replicas: {{ .Values.replicas }}
+   selector:
+-    matchLabels: {{ include "external-dns.matchLabels" . | nindent 6 }}
++    matchLabels:
++      {{ include "external-dns.labels" . | indent 6 }}
+   template:
+     metadata:
+-      labels: {{ include "external-dns.labels" . | nindent 8 }}
+       annotations:
+-        {{- if or .Values.podAnnotations .Values.metrics.enabled }}
+-        {{ include "external-dns.podAnnotations" . | nindent 8 }}
+-        {{- end }}
+-        {{- if (include "external-dns.createSecret" .) }}
+-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+-        {{- end }}
+-        {{- if and (eq .Values.provider "designate") .Values.designate.customCA.enabled }}
+-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+-        {{- end }}
++        checksum/config: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
++    {{- if .Values.podAnnotations }} 
++{{ toYaml .Values.podAnnotations | indent 8}}
++    {{- end }}
++      labels: {{ include "external-dns.labels" . | indent 8 }}
+     spec:
+-{{- include "external-dns.imagePullSecrets" . | indent 6 }}
+-      {{- if .Values.podSecurityContext }}
+-      securityContext: {{ toYaml .Values.podSecurityContext | nindent 8 }}
+-      {{- end }}
+-      {{- with .Values.affinity }}
+-      affinity: {{ tpl (toYaml .) $ | nindent 8 }}
++      {{- if .Values.image.pullSecrets }}
++      imagePullSecrets:
++      {{- range $sec := .Values.image.pullSecrets }}
++        - name: {{$sec | quote }}
+       {{- end }}
+-      {{- with .Values.nodeSelector }}
+-      nodeSelector: {{ tpl (toYaml .) $ | nindent 8 }}
+-      {{- end }}
+-      {{- with .Values.tolerations }}
+-      tolerations: {{ tpl (toYaml .) $ | nindent 8 }}
+-      {{- end }}
+-      {{- if .Values.rbac.create }}
+-      serviceAccountName: {{ template "external-dns.serviceAccountName" . }}
+       {{- end }}
+       {{- if .Values.priorityClassName }}
+-      priorityClassName: {{ .Values.priorityClassName | quote }}
++      priorityClassName: "{{ .Values.priorityClassName }}"
+       {{- end }}
+       containers:
+-        - name: external-dns
+-          image: "{{ template "external-dns.image" . }}"
+-          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
++        - name: {{ template "external-dns.name" . }}
++          image: {{ template "system_default_registry" . }}{{ .Values.image.repository}}:{{ .Values.image.tag }}
++          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+           args:
+-            # Generic arguments
+-            {{- if .Values.logLevel }}
++          {{- if .Values.logLevel }}
+             - --log-level={{ .Values.logLevel }}
+-            {{- end }}
+-            {{- if .Values.logFormat }}
+-            - --log-format={{ .Values.logFormat }}
+-            {{- end }}
+-            {{- if .Values.dryRun }}
+-            - --dry-run
+-            {{- end }}
+-            {{- if .Values.triggerLoopOnEvent }}
+-            - --events
+-            {{- end }}
+-            {{- if .Values.namespace }}
+-            - --namespace={{ .Values.namespace }}
+-            {{- end }}
+-            {{- if .Values.fqdnTemplates }}
+-            - --fqdn-template={{ join "," .Values.fqdnTemplates }}{{/* Explicitly wants comma separated list */}}
+-            {{- end }}
+-            {{- if .Values.combineFQDNAnnotation }}
+-            - --combine-fqdn-annotation
+-            {{- end }}
+-            {{- if and .Values.ignoreHostnameAnnotation .Values.fqdnTemplates }}
+-            - --ignore-hostname-annotation
+-            {{- end }}
+-            {{- if .Values.publishInternalServices }}
++          {{- end }}
++          {{- if .Values.publishInternalServices }}
+             - --publish-internal-services
+-            {{- end }}
+-            {{- if .Values.publishHostIP }}
+-            - --publish-host-ip
+-            {{- end }}
+-            {{- range .Values.serviceTypeFilter }}
+-            - --service-type-filter={{ . }}
+-            {{- end }}
+-            {{- range .Values.domainFilters }}
++          {{- end }}
++          {{- range .Values.domainFilters }}
+             - --domain-filter={{ . }}
+-            {{- end }}
+-            {{- range .Values.zoneIdFilters }}
++          {{- end }}
++          {{- range .Values.zoneIdFilters }}
+             - --zone-id-filter={{ . }}
+-            {{- end }}
++          {{- end }}
+             - --policy={{ .Values.policy }}
+             - --provider={{ .Values.provider }}
+             - --registry={{ .Values.registry }}
+             - --interval={{ .Values.interval }}
+-            {{- if eq .Values.registry "txt" }}
+-            {{- if .Values.txtOwnerId }}
++          {{- if .Values.txtOwnerId }}
+             - --txt-owner-id={{ .Values.txtOwnerId }}
+-            {{- end }}
+-            {{- if .Values.txtPrefix }}
++          {{- end }}
++          {{- if .Values.txtPrefix }}
+             - --txt-prefix={{ .Values.txtPrefix }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if .Values.annotationFilter }}
++          {{- end }}
++          {{- if .Values.annotationFilter }}
+             - --annotation-filter={{ .Values.annotationFilter }}
+-            {{- end }}
+-            {{- if .Values.crd.apiversion }}
+-            - --crd-source-apiversion={{ .Values.crd.apiversion }}
+-            {{- end }}
+-            {{- if .Values.crd.kind }}
+-            - --crd-source-kind={{ .Values.crd.kind }}
+-            {{- end }}
+-            {{- range .Values.istioIngressGateways }}
+-            - --istio-ingress-gateway={{ . }}
+-            {{- end }}
+-            {{- range .Values.sources }}
++          {{- end }}
++          {{- range .Values.sources }}
+             - --source={{ . }}
++          {{- end }}
++          {{ if .Values.dryRun }}
++            - --dry-run
++          {{- end }}
++          {{- range $key, $value := .Values.extraArgs }}
++            {{- if $value }}
++            - --{{ $key }}={{ $value }}
++            {{- else }}
++            - --{{ $key }}
+             {{- end }}
+-            {{- if or (eq .Values.provider "aws") (eq .Values.provider "aws-sd") }}
+-            # AWS arguments
+-            {{- if .Values.aws.zoneType }}
+-            - --aws-zone-type={{ .Values.aws.zoneType }}
+-            {{- end }}
+-            {{- if .Values.aws.assumeRoleArn }}
+-            - --aws-assume-role={{ .Values.aws.assumeRoleArn }}
+-            {{- end }}
+-            {{- if .Values.aws.batchChangeSize }}
+-            - --aws-batch-change-size={{ .Values.aws.batchChangeSize }}
+-            {{- end }}
+-            {{- end }}
+-            {{- range .Values.aws.zoneTags }}
+-            - --aws-zone-tags={{ . }}
+-            {{- end }}
+-            {{- if .Values.aws.preferCNAME }}
+-            - --aws-prefer-cname
+-            {{- end }}
+-            {{- if and (kindIs "bool" .Values.aws.evaluateTargetHealth) (not .Values.aws.evaluateTargetHealth) }}
+-            - --no-aws-evaluate-target-health
+-            {{- end }}
+-            {{- if or (eq .Values.provider "azure") (eq .Values.provider "azure-private-dns") }}
+-            # Azure Arguments
+-            {{- if .Values.azure.resourceGroup }}
+-            - --azure-resource-group={{ .Values.azure.resourceGroup }}
+-            {{- end }}
+-            {{- if .Values.azure.subscriptionId }}
+-            - --azure-subscription-id={{ .Values.azure.subscriptionId }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "cloudflare" }}
+-            # Cloudflare arguments
+-              {{- if .Values.cloudflare.proxied }}
++          {{- end }}
++          {{- if eq .Values.provider "cloudflare" }}
++            {{- if .Values.cloudflare.proxied }}
+             - --cloudflare-proxied
+-              {{- end }}
+             {{- end }}
+-            {{- if eq .Values.provider "google" }}
+-            # Google Arguments
++          {{- end }}
++          {{- if .Values.aws.zoneType }}
++            - --aws-zone-type={{ .Values.aws.zoneType }}
++          {{- end }}
++          {{- if .Values.google.project }}
+             - --google-project={{ .Values.google.project }}
+-            {{- end }}
+-            {{- if eq .Values.provider "infoblox" }}
+-            # Infloblox Arguments
++          {{- end }}
++          {{- if eq .Values.provider "infoblox" }}
+             - --infoblox-grid-host={{ .Values.infoblox.gridHost }}
+-              {{- if .Values.infoblox.domainFilter }}
++            {{- if .Values.infoblox.domainFilter }}
+             - --domain-filter={{ .Values.infoblox.domainFilter }}
+-              {{- end }}
+-              {{- if .Values.infoblox.wapiPort }}
++            {{- end }}
++            {{- if .Values.infoblox.wapiPort }}
+             - --infoblox-wapi-port={{ .Values.infoblox.wapiPort }}
+-              {{- end }}
+-              {{- if .Values.infoblox.wapiVersion }}
++            {{- end }}
++            {{- if .Values.infoblox.wapiVersion }}
+             - --infoblox-wapi-version={{ .Values.infoblox.wapiVersion }}
+-              {{- end }}
+-              {{- if .Values.infoblox.noSslVerify }}
++            {{- end }}
++            {{- if .Values.infoblox.noSslVerify }}
+             - --no-infoblox-ssl-verify
+-              {{- else }}
++            {{- else }}
+             - --infoblox-ssl-verify
+-              {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "rfc2136" }}
+-            # RFC 2136 arguments
+-            - --rfc2136-host={{ required "rfc2136.host must be supplied for provider 'rfc2136'" .Values.rfc2136.host }}
+-            - --rfc2136-port={{ .Values.rfc2136.port }}
+-            - --rfc2136-zone={{ required "rfc2136.zone must be supplied for provider 'rfc2136'" .Values.rfc2136.zone }}
+-              {{- if .Values.rfc2136.tsigKeyname }}
+-            - --rfc2136-tsig-secret-alg={{ .Values.rfc2136.tsigSecretAlg }}
+-            - --rfc2136-tsig-keyname={{ .Values.rfc2136.tsigKeyname }}
+-                {{- if .Values.rfc2136.tsigAxfr }}
+-            - --rfc2136-tsig-axfr
+-                {{- end }}
+-              {{- else }}
+-            - --rfc2136-insecure
+-              {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "pdns" }}
+-            # PowerDNS arguments
+-            - --pdns-server={{ .Values.pdns.apiUrl }}:{{ .Values.pdns.apiPort }}
+-            - --pdns-api-key=$(PDNS_API_KEY)
+-            {{- end }}
+-            {{- if eq .Values.provider "transip" }}
+-            # TransIP arguments
+-            - --transip-account={{ .Values.transip.account }}
+-            - --transip-keyfile=/transip/transip-api-key
+-            {{- end }}
+-            {{- range $key, $value := .Values.extraArgs }}
+-             # Extra arguments
+-              {{- if $value }}
+-            - --{{ $key }}={{ $value }}
+-              {{- else }}
+-            - --{{ $key }}
+-              {{- end }}
+             {{- end }}
+-          env:
+-            {{- if or (eq .Values.provider "aws") (eq .Values.provider "aws-sd") }}
+-            # AWS environment variables
+-            {{- if .Values.aws.region }}
+-            - name: AWS_DEFAULT_REGION
+-              value: {{ .Values.aws.region }}
+-            {{- end }}
+-            {{- if .Values.aws.roleArn }}
+-            - name: AWS_CONFIG_FILE
+-              value: {{ .Values.aws.credentials.mountPath }}/config
+-            {{- end }}
+-            {{- if and .Values.aws.credentials.secretKey .Values.aws.credentials.accessKey }}
+-            - name: AWS_SHARED_CREDENTIALS_FILE
+-              value: {{ .Values.aws.credentials.mountPath }}/credentials
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "azure-private-dns" }}
+-            # Azure Private DNS variables
+-            {{- if .Values.azure.tenantId }}
+-            - name: AZURE_TENANT_ID
+-              value: {{ .Values.azure.tenantId }}
+-            {{- end }}
+-            {{- if .Values.azure.aadClientId }}
+-            - name: AZURE_CLIENT_ID
+-              value: {{ .Values.azure.aadClientId }}
+-            {{- end }}
+-            {{- if .Values.azure.aadClientSecret }}
+-            - name: AZURE_CLIENT_SECRET
+-              value: {{ .Values.azure.aadClientSecret }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "cloudflare" }}
+-            # Cloudflare environment variables
+-            {{- if or .Values.cloudflare.apiToken .Values.cloudflare.secretName }}
+-            - name: CF_API_TOKEN
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: cloudflare_api_token
+-            {{- else if or .Values.cloudflare.apiKey .Values.cloudflare.secretName }}
+-            - name: CF_API_KEY
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: cloudflare_api_key
+-            - name: CF_API_EMAIL
+-              value: {{ required "cloudflare.email is required if cloudflare.apiToken is not provided" .Values.cloudflare.email | quote }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "coredns" }}
+-            # CoreDNS environment variables
+-            - name: ETCD_URLS
+-              value: {{ .Values.coredns.etcdEndpoints | quote }}
+-            {{- if .Values.coredns.etcdTLS.enabled }}
+-            - name: ETCD_CERT_FILE
+-              value: {{ .Values.coredns.etcdTLS.mountPath }}/{{ .Values.coredns.etcdTLS.certFilename }}
+-            - name: ETCD_KEY_FILE
+-              value: {{ .Values.coredns.etcdTLS.mountPath }}/{{ .Values.coredns.etcdTLS.keyFilename }}
+-            - name: ETCD_CA_FILE
+-              value: {{ .Values.coredns.etcdTLS.mountPath }}/{{ .Values.coredns.etcdTLS.caFilename }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "designate" }}
+-            # Designate environment variables
+-            {{- if .Values.designate.customCA.enabled }}
+-            - name: OPENSTACK_CA_FILE
+-              value: {{ .Values.designate.customCA.mountPath }}/{{ .Values.designate.customCA.filename }}
+-            {{- else if .Values.designate.customCAHostPath }}
+-            - name: OPENSTACK_CA_FILE
+-              value: {{ .Values.designate.customCAHostPath }}
+-            {{- end }}
+-            {{- if .Values.designate.username}}
+-            - name: OS_USERNAME
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: designate_username
+-            {{- end }}
+-            {{- if .Values.designate.password}}
+-            - name: OS_PASSWORD
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: designate_password
+-            {{- end }}
+-            {{- if .Values.designate.authUrl }}
+-            - name: OS_AUTH_URL
+-              value: {{ .Values.designate.authUrl }}
+-            {{- end }}
+-            {{- if .Values.designate.regionName }}
+-            - name: OS_REGION_NAME
+-              value: {{ .Values.designate.regionName }}
+-            {{- end }}
+-            {{- if .Values.designate.userDomainName }}
+-            - name: OS_USER_DOMAIN_NAME
+-              value: {{ .Values.designate.userDomainName }}
+-            {{- end }}
+-            {{- if .Values.designate.projectName }}
+-            - name: OS_PROJECT_NAME
+-              value: {{ .Values.designate.projectName }}
+-            {{- end }}
+-            {{- end }}
+-            {{- if and (eq .Values.provider "digitalocean") (or .Values.digitalocean.apiToken .Values.digitalocean.secretName) }}
+-            # DigitalOcean environment variables
+-            - name: DO_TOKEN
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: digitalocean_api_token
+-            {{- end }}
+-            {{- if eq .Values.provider "google" }}
+-            # Google environment variables
+-            {{- if or .Values.google.serviceAccountSecret .Values.google.serviceAccountKey }}
+-            - name: GOOGLE_APPLICATION_CREDENTIALS
+-              value: /etc/secrets/service-account/credentials.json
+-            {{- end }}
+-            {{- end }}
+-            {{- if eq .Values.provider "infoblox" }}
+-            # Infloblox environment variables
+-            {{- if .Values.infoblox.wapiConnectionPoolSize }}
+-            - name: EXTERNAL_DNS_INFOBLOX_HTTP_POOL_CONNECTIONS
+-              value: "{{ .Values.infoblox.wapiConnectionPoolSize }}"
+-            {{- end }}
+-            {{- if .Values.infoblox.wapiHttpTimeout }}
+-            - name: EXTERNAL_DNS_INFOBLOX_HTTP_REQUEST_TIMEOUT
+-              value: "{{ .Values.infoblox.wapiHttpTimeout }}"
+-            {{- end }}
+-            {{- if and .Values.infoblox.wapiUsername .Values.infoblox.wapiPassword }}
+-            - name: EXTERNAL_DNS_INFOBLOX_WAPI_USERNAME
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: infoblox_wapi_username
+-            - name: EXTERNAL_DNS_INFOBLOX_WAPI_PASSWORD
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: infoblox_wapi_password
+-            {{- end }}
+-            {{- end }}
+-            {{- if and .Values.rfc2136.tsigSecret }}
+-            # RFC 2136 environment variables
+-            - name: EXTERNAL_DNS_RFC2136_TSIG_SECRET
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: rfc2136_tsig_secret
+-            {{- end }}
+-            {{- if and (eq .Values.provider "pdns") .Values.pdns.apiKey }}
+-            # PowerDNS environment variables
+-            - name: PDNS_API_KEY
+-              valueFrom:
+-                secretKeyRef:
+-                  name: {{ template "external-dns.secretName" . }}
+-                  key: pdns_api_key
+-            {{- end }}
+-            {{- if .Values.extraEnv }}
+-            # Extra environment variables
+-            {{- toYaml .Values.extraEnv | nindent 12 }}
+-            {{- end }}
+-          ports:
+-            - name: http
+-              containerPort: {{ .Values.service.port }}
+-          readinessProbe: {{ toYaml .Values.readinessProbe | nindent 12 }}
+-          livenessProbe: {{ toYaml .Values.livenessProbe | nindent 12 }}
+-          {{- if .Values.securityContext }}
+-          securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
+           {{- end }}
+-          {{- if .Values.resources }}
+-          resources: {{- toYaml .Values.resources | nindent 12 }}
++          {{- if eq .Values.provider "alibabacloud" }}
++            - --alibaba-cloud-config-file=/etc/kubernetes/config.yaml
++          {{- end }}
++          {{- if .Values.alibabacloud.zoneType }}
++            - --alibaba-cloud-zone-type={{ .Values.alibabacloud.zoneType }}
+           {{- end }}
+           volumeMounts:
+-            {{- if and (eq .Values.provider "aws") (or (and .Values.aws.credentials.secretKey .Values.aws.credentials.accessKey) .Values.aws.credentials.secretName) }}
+-            # AWS mountPath(s)
+-            - name: aws-credentials
+-              mountPath: {{ .Values.aws.credentials.mountPath }}
+-              readOnly: true
++          {{- if or .Values.google.serviceAccountSecret .Values.google.serviceAccountKey }}
++          - name: google-service-account
++            mountPath: /etc/secrets/service-account/
++          {{- end}}
++          {{- if eq .Values.provider "azure" }}
++          - name: azure-config-file
++            {{- if not .Values.azure.secretName }}
++            mountPath: /etc/kubernetes/azure.json
++            {{- else }}
++            mountPath: /etc/kubernetes/
+             {{- end }}
+-            {{- if eq .Values.provider "azure" }}
+-            # Azure mountPath(s)
+-            - name: azure-config-file
+-              {{- if or .Values.azure.secretName (and .Values.azure.resourceGroup .Values.azure.tenantId .Values.azure.subscriptionId) }}
+-              mountPath: /etc/kubernetes/
+-              {{- else if not .Values.azure.useManagedIdentityExtension }}
+-              mountPath: /etc/kubernetes/azure.json
+-              {{- end }}
+-              readOnly: true
+-            {{- end }}
+-            {{- if and (eq .Values.provider "coredns") (.Values.coredns.etcdTLS.enabled) }}
+-            # CoreDNS mountPath(s)
+-            - name: {{ .Values.coredns.etcdTLS.secretName }}
+-              mountPath: {{ .Values.coredns.etcdTLS.mountPath }}
+-              readOnly: true
+-            {{- end }}
+-            {{- if and (eq .Values.provider "google") (or .Values.google.serviceAccountKey .Values.google.serviceAccountSecret) }}
+-            # Google mountPath(s)
+-            - name: google-service-account
+-              mountPath: /etc/secrets/service-account/
+-            {{- end }}
+-            {{- if eq .Values.provider "designate" }}
+-            # Designate mountPath(s)
+-            {{- if and (.Values.designate.customCAHostPath) (.Values.designate.customCA.enabled) }}
+-            {{- fail "designate.customCAHostPath cannot be specified with designate.customCA.enabled set to true"}}
+-            {{- else if .Values.designate.customCA.enabled }}
+-            - name: designate-custom-ca
+-              mountPath: {{ .Values.designate.customCA.mountPath }}
+-              readOnly: true
+-            {{- else if .Values.designate.customCAHostPath }}
+-            - name: designate-custom-ca-hostpath
+-              mountPath: {{ .Values.designate.customCAHostPath }}
+-              readOnly: true
+-            {{- end }}
+-            {{- end }}
+-            {{- if (eq .Values.provider "transip") }}
+-            # TransIP mountPath(s)
+-            - name: transip-api-key
+-              mountPath: /transip
+-              readOnly: true
+-            {{- end }}
+-            {{- if .Values.extraVolumeMounts }}
+-            # Extra volume mount(s)
+-            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+-            {{- end }}
+-      volumes:
+-        {{- if and (eq .Values.provider "aws") (or (and .Values.aws.credentials.secretKey .Values.aws.credentials.accessKey) .Values.aws.credentials.secretName) }}
+-        # AWS volume(s)
+-        - name: aws-credentials
+-          secret:
+-            secretName: {{ template "external-dns.secretName" . }}
+-        {{- end }}
+-        {{- if eq .Values.provider "azure" }}
+-        # Azure volume(s)
+-        - name: azure-config-file
+-          {{- if or .Values.azure.secretName (and .Values.azure.resourceGroup .Values.azure.tenantId .Values.azure.subscriptionId) }}
+-          secret:
+-            secretName: {{ template "external-dns.secretName" . }}
+-          {{- else if not .Values.azure.useManagedIdentityExtension }}
+-          hostPath:
+-            path: /etc/kubernetes/azure.json
+-            type: File
+-          {{- end }}
+-        {{- end }}
+-        {{- if and (eq .Values.provider "coredns") (.Values.coredns.etcdTLS.enabled) }}
+-        # CoreDNS volume(s)
+-        - name: {{ .Values.coredns.etcdTLS.secretName }}
+-          secret:
+-            secretName: {{ .Values.coredns.etcdTLS.secretName }}
+-            defaultMode: 400
+-        {{- end }}
+-        {{- if and (eq .Values.provider "google") (or .Values.google.serviceAccountKey .Values.google.serviceAccountSecret) }}
+-        # Google volume(s)
+-        - name: google-service-account
+-          secret:
+-            secretName: {{ template "external-dns.secretName" . }}
+-            {{- if and .Values.google.serviceAccountSecret .Values.google.serviceAccountSecretKey }}
+-            items:
+-            - key: {{ .Values.google.serviceAccountSecretKey | quote }}
+-              path: credentials.json
+-            {{- end }}
+-        {{- end }}     
+-        {{- if eq .Values.provider "designate" }}
+-        # Designate volume(s)
+-        {{- if .Values.designate.customCA.enabled }}
+-        - name: designate-custom-ca
+-          configMap:
+-            name: {{ template "external-dns.fullname" . }}
+-            items:
+-            - key: {{ .Values.designate.customCA.filename }}
+-              path: {{ .Values.designate.customCA.filename }}
+-        {{- else if .Values.designate.customCAHostPath }}
+-        - name: designate-custom-ca-hostpath
+-          hostPath:
+-            path: {{ .Values.designate.customCAHostPath }}
+-        {{- end }}
+-        {{- end }}
+-        {{- if (eq .Values.provider "transip") }}
+-        # TransIP volume(s)
+-        - name: transip-api-key
+-          secret:
+-            name: {{ template "external-dns.fullname" . }}
+-        {{- end }}
+-        {{- if .Values.extraVolumes }}
+-        # Extra volume(s)
+-        {{- toYaml .Values.extraVolumes | indent 8 }}
++            readOnly: true
++          {{- end }}
++          {{- if (and .Values.aws.secretKey .Values.aws.accessKey) }}
++          - name: aws-credentials
++            mountPath: {{ .Values.aws.credentialsPath }}
++            readOnly: true
++          {{- end }}
++          {{- if and (eq .Values.provider "designate") .Values.designate.customCA.enabled }}
++          - name: designate-custom-ca
++            mountPath: {{ .Values.designate.customCA.directory }}
++            readOnly: true
++          {{- end }}
++          {{- if eq .Values.provider "alibabacloud" }}
++          - name: alibaba-cloud-config-file
++            mountPath: /etc/kubernetes/
++            readOnly: true
++          - mountPath: /usr/share/zoneinfo
++            name: zoneinfo
++            readOnly: true
++          {{- end }}
++          env:
++        {{- if or .Values.google.serviceAccountSecret .Values.google.serviceAccountKey }}
++          - name: GOOGLE_APPLICATION_CREDENTIALS
++            value: /etc/secrets/service-account/credentials.json
++        {{- end }}
++        {{- if or (eq .Values.provider "aws") (eq .Values.provider "aws-sd") }}
++        {{- if .Values.aws.region }}
++          - name: AWS_DEFAULT_REGION
++            value: {{ .Values.aws.region }}
++        {{- end }}
+         {{- end }}
++        {{- if and .Values.cloudflare.apiKey .Values.cloudflare.email }}
++          - name: CF_API_KEY
++            valueFrom:
++              secretKeyRef:
++                name: {{ template "external-dns.fullname" . }}
++                key: cloudflare_api_key
++          - name: CF_API_EMAIL
++            value: "{{ .Values.cloudflare.email }}"
++        {{- end }}
++        {{- if .Values.infoblox.wapiConnectionPoolSize }}
++          - name: EXTERNAL_DNS_INFOBLOX_HTTP_POOL_CONNECTIONS
++            value: "{{ .Values.infoblox.wapiConnectionPoolSize }}"
++        {{- end }}
++        {{- if .Values.infoblox.wapiHttpTimeout }}
++          - name: EXTERNAL_DNS_INFOBLOX_HTTP_REQUEST_TIMEOUT
++            value: "{{ .Values.infoblox.wapiHttpTimeout }}"
++        {{- end }}
++        {{- if and .Values.infoblox.wapiUsername .Values.infoblox.wapiPassword }}
++          - name: EXTERNAL_DNS_INFOBLOX_WAPI_USERNAME
++            valueFrom:
++              secretKeyRef:
++                name: {{ template "external-dns.fullname" . }}
++                key: infoblox_wapi_username
++          - name: EXTERNAL_DNS_INFOBLOX_WAPI_PASSWORD
++            valueFrom:
++              secretKeyRef:
++                name: {{ template "external-dns.fullname" . }}
++                key: infoblox_wapi_password
++        {{- end }}
++        {{- if and (eq .Values.provider "designate") .Values.designate.customCA.enabled }}
++          - name: OPENSTACK_CA_FILE
++            value: {{ .Values.designate.customCA.directory }}/{{ .Values.designate.customCA.filename }}
++        {{- end }}
++        {{- $root := . -}}
++        {{- range .Values.extraEnv }}
++          - name: {{ .name }}
++            valueFrom:
++          {{- if .valueFrom }}
++{{ toYaml .valueFrom | indent 14 }}
++          {{- else }}
++              secretKeyRef:
++                name: {{ template "external-dns.fullname" $root }}
++                key: {{ .name }}
++          {{- end }}
++        {{- end }}
++          livenessProbe:
++            httpGet:
++              path: /healthz
++              port: 7979
++          ports:
++            - containerPort: 7979
++        {{- if .Values.securityContext }}
++          securityContext:
++{{ toYaml .Values.securityContext | indent 12 }}
++        {{- end }}
++        {{- if .Values.resources }}
++          resources:
++{{ toYaml .Values.resources | indent 12 }}
++        {{- end }}
++      volumes:
++      {{- if .Values.google.serviceAccountSecret }}
++      - name: google-service-account
++        secret:
++          secretName: {{ .Values.google.serviceAccountSecret | quote }}
++      {{- else if .Values.google.serviceAccountKey }}
++      - name: google-service-account
++        secret:
++          secretName: {{ template "external-dns.fullname" . }}
++      {{- end}}
++      {{- if eq .Values.provider "azure" }}
++      - name: azure-config-file
++        {{- if (not .Values.azure.secretName)}}
++        hostPath:
++          path: /etc/kubernetes/azure.json
++          type: File
++        {{- else}}
++        secret:
++          secretName: {{.Values.azure.secretName}}
++        {{- end}}
++      {{- end }}
++      {{- if (and .Values.aws.secretKey .Values.aws.accessKey) }}
++      - name: aws-credentials
++        secret:
++          secretName: {{ template "external-dns.fullname" . }}
++      {{- end }}
++      {{- if and (eq .Values.provider "designate") .Values.designate.customCA.enabled }}
++      - name: designate-custom-ca
++        configMap:
++          name: {{ template "external-dns.fullname" . }}
++          items:
++          - key: {{ .Values.designate.customCA.filename }}
++            path: {{ .Values.designate.customCA.filename }}
++      {{- end }}
++      {{- if eq .Values.provider "alibabacloud" }}
++      - name: alibaba-cloud-config-file
++        secret:
++          secretName: {{ template "external-dns.fullname" . }}
++      - name: zoneinfo
++        hostPath:
++          path: /usr/share/zoneinfo
++      {{- end }}
++      nodeSelector:
++        beta.kubernetes.io/os: linux
++    {{- if .Values.nodeSelector }}
++{{ toYaml .Values.nodeSelector | indent 8 }}
++    {{- end }}
++    {{- if .Values.tolerations }}
++      tolerations:
++{{ toYaml .Values.tolerations | indent 8 }}
++    {{- end }}
++{{- if .Values.affinity }}
++      affinity:
++{{ toYaml .Values.affinity | indent 8 }}
++    {{- end }}
++      serviceAccountName: {{ if .Values.rbac.create }}{{ template "external-dns.fullname" . }}{{ else }}"{{ .Values.rbac.serviceAccountName }}"{{ end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/_helpers.tpl packages/rancher-external-dns/charts/templates/_helpers.tpl
+--- packages/rancher-external-dns/charts-original/templates/_helpers.tpl	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/_helpers.tpl	2020-04-10 09:21:46.216002335 -0700
+@@ -9,433 +9,62 @@
+ {{/*
+ Create a default fully qualified app name.
+ We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+-If release name contains chart name it will be used as a full name.
+ */}}
+ {{- define "external-dns.fullname" -}}
+-{{- if .Values.fullnameOverride -}}
+-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+-{{- else -}}
+ {{- $name := default .Chart.Name .Values.nameOverride -}}
+-{{- if contains $name .Release.Name -}}
+-{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+-{{- else -}}
++{{- if ne $name .Release.Name -}}
+ {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+-{{- end -}}
++{{- else -}}
++{{- printf "%s" $name | trunc 63 | trimSuffix "-" -}}
+ {{- end -}}
+ {{- end -}}
+ 
+-{{/*
+-Create chart name and version as used by the chart label.
+-*/}}
+-{{- define "external-dns.chart" -}}
+-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+-{{- end -}}
+-
+-{{/* Helm required labels */}}
+-{{- define "external-dns.labels" -}}
+-app.kubernetes.io/name: {{ template "external-dns.name" . }}
+-helm.sh/chart: {{ template "external-dns.chart" . }}
+-app.kubernetes.io/instance: {{ .Release.Name }}
+-app.kubernetes.io/managed-by: {{ .Release.Service }}
++{{/* Generate basic labels */}}
++{{- define "external-dns.labels" }}
++app: {{ template "external-dns.name" . }}
++heritage: {{.Release.Service }}
++release: {{.Release.Name }}
+ {{- if .Values.podLabels }}
+ {{ toYaml .Values.podLabels }}
+ {{- end }}
+-{{- end -}}
+-
+-{{/* matchLabels */}}
+-{{- define "external-dns.matchLabels" -}}
+-app.kubernetes.io/name: {{ template "external-dns.name" . }}
+-app.kubernetes.io/instance: {{ .Release.Name }}
+-{{- end -}}
+-
+-{{/* podAnnotations */}}
+-{{- define "external-dns.podAnnotations" -}}
+-{{- if .Values.podAnnotations }}
+-{{- toYaml .Values.podAnnotations }}
+-{{- end }}
+-{{- if .Values.metrics.podAnnotations }}
+-{{- toYaml .Values.metrics.podAnnotations }}
+-{{- end }}
+-{{- end -}}
+-
+-{{/*
+-Return the proper External DNS image name
+-*/}}
+-{{- define "external-dns.image" -}}
+-{{- $registryName := .Values.image.registry -}}
+-{{- $repositoryName := .Values.image.repository -}}
+-{{- $tag := .Values.image.tag | toString -}}
+-{{/*
+-Helm 2.11 supports the assignment of a value to a variable defined in a different scope,
+-but Helm 2.9 and 2.10 doesn't support it, so we need to implement this if-else logic.
+-Also, we can't use a single if because lazy evaluation is not an option
+-*/}}
+-{{- if .Values.global }}
+-    {{- if .Values.global.imageRegistry }}
+-        {{- printf "%s/%s:%s" .Values.global.imageRegistry $repositoryName $tag -}}
+-    {{- else -}}
+-        {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+-    {{- end -}}
+-{{- else -}}
+-    {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Return the proper Docker Image Registry Secret Names
+-*/}}
+-{{- define "external-dns.imagePullSecrets" -}}
+-{{/*
+-Helm 2.11 supports the assignment of a value to a variable defined in a different scope,
+-but Helm 2.9 and 2.10 does not support it, so we need to implement this if-else logic.
+-Also, we can not use a single if because lazy evaluation is not an option
+-*/}}
+-{{- if .Values.global }}
+-{{- if .Values.global.imagePullSecrets }}
+-imagePullSecrets:
+-{{- range .Values.global.imagePullSecrets }}
+-  - name: {{ . }}
+-{{- end }}
+-{{- else if .Values.image.pullSecrets }}
+-imagePullSecrets:
+-{{- range .Values.image.pullSecrets }}
+-  - name: {{ . }}
+ {{- end }}
+-{{- end -}}
+-{{- else if .Values.image.pullSecrets }}
+-imagePullSecrets:
+-{{- range .Values.image.pullSecrets }}
+-  - name: {{ . }}
+-{{- end }}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Return true if a secret object should be created
+-*/}}
+-{{- define "external-dns.createSecret" -}}
+-{{- if and (eq .Values.provider "aws") .Values.aws.credentials.secretKey .Values.aws.credentials.accessKey (not .Values.aws.credentials.secretName) }}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "azure") (or (and .Values.azure.resourceGroup .Values.azure.tenantId .Values.azure.subscriptionId .Values.azure.aadClientId .Values.azure.aadClientSecret (not .Values.azure.useManagedIdentityExtension)) (and .Values.azure.resourceGroup .Values.azure.tenantId .Values.azure.subscriptionId .Values.azure.useManagedIdentityExtension)) (not .Values.azure.secretName) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "cloudflare") (or .Values.cloudflare.apiToken .Values.cloudflare.apiKey) (not .Values.cloudflare.secretName) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "designate") (or .Values.designate.username .Values.designate.password) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "digitalocean") .Values.digitalocean.apiToken (not .Values.digitalocean.secretName) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "google") .Values.google.serviceAccountKey (not .Values.google.serviceAccountSecret) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "infoblox") (and .Values.infoblox.wapiUsername .Values.infoblox.wapiPassword) -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "rfc2136") .Values.rfc2136.tsigSecret -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "pdns") .Values.pdns.apiKey -}}
+-    {{- true -}}
+-{{- else if and (eq .Values.provider "transip") .Values.transip.apiKey -}}
+-    {{- true -}}
+-{{- else -}}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Return the name of the Secret used to store the passwords
+-*/}}
+-{{- define "external-dns.secretName" -}}
+-{{- if and (eq .Values.provider "aws") .Values.aws.credentials.secretName }}
+-{{- .Values.aws.credentials.secretName }}
+-{{- else if and (eq .Values.provider "azure") .Values.azure.secretName }}
+-{{- .Values.azure.secretName }}
+-{{- else if and (eq .Values.provider "cloudflare") .Values.cloudflare.secretName }}
+-{{- .Values.cloudflare.secretName }}
+-{{- else if and (eq .Values.provider "digitalocean") .Values.digitalocean.secretName }}
+-{{- .Values.digitalocean.secretName }}
+-{{- else if and (eq .Values.provider "google") .Values.google.serviceAccountSecret }}
+-{{- .Values.google.serviceAccountSecret }}
+-{{- else -}}
+-{{- template "external-dns.fullname" . }}
+-{{- end -}}
+-{{- end -}}
+ 
+ {{- define "external-dns.aws-credentials" }}
+ [default]
+-aws_access_key_id = {{ .Values.aws.credentials.accessKey }}
+-aws_secret_access_key = {{ .Values.aws.credentials.secretKey }}
++aws_access_key_id = {{ .Values.aws.accessKey }}
++aws_secret_access_key = {{ .Values.aws.secretKey }}
+ {{ end }}
+ 
++
+ {{- define "external-dns.aws-config" }}
+ [profile default]
++{{- if .Values.aws.roleArn }}
++role_arn = {{ .Values.aws.roleArn }}
++{{- end }}
+ region = {{ .Values.aws.region }}
+ {{ end }}
+ 
+-{{- define "external-dns.azure-credentials" -}}
+-{
+-  {{- if .Values.azure.cloud }}
+-  "cloud": "{{ .Values.azure.cloud }}",
+-  {{- end}}
+-  "tenantId": "{{ .Values.azure.tenantId }}",
+-  "subscriptionId": "{{ .Values.azure.subscriptionId }}",
+-  "resourceGroup": "{{ .Values.azure.resourceGroup }}",
+-  {{- if not .Values.azure.useManagedIdentityExtension }}
+-  "aadClientId": "{{ .Values.azure.aadClientId }}",
+-  "aadClientSecret": "{{ .Values.azure.aadClientSecret }}"
+-  {{- end }}
+-  {{- if .Values.azure.useManagedIdentityExtension }}
+-  "useManagedIdentityExtension": true
+-  {{- end }}
+-}
++{{- define "external-dns.alibabacloud-config" }}
++accessKeyId: {{ .Values.alibabacloud.accessKey }}
++accessKeySecret: {{ .Values.alibabacloud.secretKey }}
+ {{ end }}
+ 
+-{{/*
+-Compile all warnings into a single message, and call fail.
+-*/}}
+-{{- define "external-dns.validateValues" -}}
+-{{- $messages := list -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.provider" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.sources" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.aws" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.infoblox.gridHost" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.infoblox.wapiPassword" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.pdns.apiUrl" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.pdns.apiKey" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.resourceGroup" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.tenantId" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.subscriptionId" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.useManagedIdentityExtensionAadClientId" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.useManagedIdentityExtensionAadClientSecret" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.aadClientId" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.azure.aadClientSecret" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.transip.account" .) -}}
+-{{- $messages := append $messages (include "external-dns.validateValues.transip.apiKey" .) -}}
+-{{- $messages := without $messages "" -}}
+-{{- $message := join "\n" $messages -}}
+-
+-{{- if $message -}}
+-{{-   printf "\nVALUES VALIDATION:\n%s" $message | fail -}}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must set a provider
+-*/}}
+-{{- define "external-dns.validateValues.provider" -}}
+-{{- if not .Values.provider -}}
+-external-dns: provider
+-    You must set a provider (options: aws, google, azure, cloudflare, ...)
+-    Please set the provider parameter (--set provider="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must provide sources to be observed for new DNS entries by ExternalDNS
+-*/}}
+-{{- define "external-dns.validateValues.sources" -}}
+-{{- if empty .Values.sources -}}
+-external-dns: sources
+-    You must provide sources to be observed for new DNS entries by ExternalDNS
+-    Please set the sources parameter (--set sources="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- The AWS Role to assume must follow ARN format when provider is "aws"
+-*/}}
+-{{- define "external-dns.validateValues.aws" -}}
+-{{- if and (eq .Values.provider "aws") .Values.aws.assumeRoleArn -}}
+-{{- if not (regexMatch "^arn:aws:iam::.*$" .Values.aws.assumeRoleArn) -}}
+-external-dns: aws.assumeRoleArn
+-    The AWS Role to assume must follow ARN format: `arn:aws:iam::123455567:role/external-dns`
+-    Ref: https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
+-    Please set a valid ARN (--set aws.assumeRoleARN="xxxx")
+-{{- end -}}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must provide the Grid Manager host when provider is "infoblox"
+-*/}}
+-{{- define "external-dns.validateValues.infoblox.gridHost" -}}
+-{{- if and (eq .Values.provider "infoblox") (not .Values.infoblox.gridHost) -}}
+-external-dns: infoblox.gridHost
+-    You must provide the the Grid Manager host when provider="infoblox".
+-    Please set the gridHost parameter (--set infoblox.gridHost="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must provide a WAPI password when provider is "infoblox"
+-*/}}
+-{{- define "external-dns.validateValues.infoblox.wapiPassword" -}}
+-{{- if and (eq .Values.provider "infoblox") (not .Values.infoblox.wapiPassword) -}}
+-external-dns: infoblox.wapiPassword
+-    You must provide a WAPI password when provider="infoblox".
+-    Please set the wapiPassword parameter (--set infoblox.wapiPassword="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Return the appropriate apiVersion for PodSecurityPolicy.
+-*/}}
+-{{- define "podSecurityPolicy.apiVersion" -}}
+-{{- if semverCompare ">=1.14-0" .Capabilities.KubeVersion.GitVersion -}}
+-{{- print "policy/v1beta1" -}}
++{{- define "system_default_registry" -}}
++{{- if .Values.global.systemDefaultRegistry -}}
++{{- printf "%s/" .Values.global.systemDefaultRegistry -}}
+ {{- else -}}
+-{{- print "extensions/v1beta1" -}}
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must provide the PowerDNS API URL when provider is "pdns"
+-*/}}
+-{{- define "external-dns.validateValues.pdns.apiUrl" -}}
+-{{- if and (eq .Values.provider "pdns") (not .Values.pdns.apiUrl) -}}
+-external-dns: pdns.apiUrl
+-    You must provide the the PowerDNS API URL when provider="pdns".
+-    Please set the apiUrl parameter (--set pdns.apiUrl="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of External DNS:
+-- must provide the PowerDNS API key when provider is "pdns"
+-*/}}
+-{{- define "external-dns.validateValues.pdns.apiKey" -}}
+-{{- if and (eq .Values.provider "pdns") (not .Values.pdns.apiKey) -}}
+-external-dns: pdns.apiKey
+-    You must provide the the PowerDNS API key when provider="pdns".
+-    Please set the apiKey parameter (--set pdns.apiKey="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/* Check if there are rolling tags in the images */}}
+-{{- define "external-dns.checkRollingTags" -}}
+-{{- if and (contains "bitnami/" .Values.image.repository) (not (.Values.image.tag | toString | regexFind "-r\\d+$|sha256:")) }}
+-WARNING: Rolling tag detected ({{ .Values.image.repository }}:{{ .Values.image.tag }}), please note that it is strongly recommended to avoid using rolling tags in a production environment.
+-+info https://docs.bitnami.com/containers/how-to/understand-rolling-tags-containers/
+-{{- end }}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must provide the Azure Resource Group when provider is "azure"
+-*/}}
+-{{- define "external-dns.validateValues.azure.resourceGroup" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.resourceGroup) -}}
+-external-dns: azure.resourceGroup
+-    You must provide the Azure Resource Group when provider="azure".
+-    Please set the resourceGroup parameter (--set azure.resourceGroup="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must provide the Azure Tenant ID when provider is "azure" and secretName is not set
+-*/}}
+-{{- define "external-dns.validateValues.azure.tenantId" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.tenantId) (not .Values.azure.secretName) -}}
+-external-dns: azure.tenantId
+-    You must provide the Azure Tenant ID when provider="azure".
+-    Please set the tenantId parameter (--set azure.tenantId="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must provide the Azure Subscription ID when provider is "azure" and secretName is not set
+-*/}}
+-{{- define "external-dns.validateValues.azure.subscriptionId" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.subscriptionId) (not .Values.azure.secretName) -}}
+-external-dns: azure.subscriptionId
+-    You must provide the Azure Subscription ID when provider="azure".
+-    Please set the subscriptionId parameter (--set azure.subscriptionId="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must not provide the Azure AAD Client ID when provider is "azure", secretName is not set and MSI is enabled
+-*/}}
+-{{- define "external-dns.validateValues.azure.useManagedIdentityExtensionAadClientId" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.secretName) .Values.azure.aadClientId .Values.azure.useManagedIdentityExtension -}}
+-external-dns: azure.seManagedIdentityExtension
+-    You must not provide the Azure AAD Client ID when provider="azure" and useManagedIdentityExtension is "true".
+-    Please unset the aadClientId parameter (--set azure.aadClientId="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must not provide the Azure AAD Client Secret when provider is "azure", secretName is not set and MSI is enabled
+-*/}}
+-{{- define "external-dns.validateValues.azure.useManagedIdentityExtensionAadClientSecret" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.secretName) .Values.azure.aadClientSecret .Values.azure.useManagedIdentityExtension -}}
+-external-dns: azure.seManagedIdentityExtension
+-    You must not provide the Azure AAD Client Secret when provider="azure" and useManagedIdentityExtension is "true".
+-    Please unset set the aadClientSecret parameter (--set azure.aadClientSecret="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of Azure DNS:
+-- must provide the Azure AAD Client ID when provider is "azure", secretName is not set and MSI is disabled
+-*/}}
+-{{- define "external-dns.validateValues.azure.aadClientId" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.secretName) (not .Values.azure.aadClientId) (not .Values.azure.useManagedIdentityExtension) -}}
+-external-dns: azure.seManagedIdentityExtension
+-    You must provide the Azure AAD Client ID when provider="azure" and useManagedIdentityExtension is not set.
+-    Please set the aadClientId parameter (--set azure.aadClientId="xxxx").
++{{- "" -}}
+ {{- end -}}
+ {{- end -}}
+ 
+-{{/*
+-Validate values of Azure DNS:
+-- must provide the Azure AAD Client Secret when provider is "azure", secretName is not set and MSI is disabled
+-*/}}
+-{{- define "external-dns.validateValues.azure.aadClientSecret" -}}
+-{{- if and (eq .Values.provider "azure") (not .Values.azure.secretName) (not .Values.azure.aadClientSecret) (not .Values.azure.useManagedIdentityExtension) -}}
+-external-dns: azure.seManagedIdentityExtension
+-    You must provide the Azure AAD Client Secret when provider="azure" and useManagedIdentityExtension is not set.
+-    Please set set the aadClientSecret parameter (--set azure.aadClientSecret="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of TransIP DNS:
+-- must provide the account name when provider is "transip"
+-*/}}
+-{{- define "external-dns.validateValues.transip.account" -}}
+-{{- if and (eq .Values.provider "transip") (not .Values.transip.account) -}}
+-external-dns: transip.account
+-    You must provide the TransIP account name when provider="transip".
+-    Please set the account parameter (--set transip.account="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{{/*
+-Validate values of TransIP DNS:
+-- must provide the API key when provider is "transip"
+-*/}}
+-{{- define "external-dns.validateValues.transip.apiKey" -}}
+-{{- if and (eq .Values.provider "transip") (not .Values.transip.apiKey) -}}
+-external-dns: transip.apiKey
+-    You must provide the TransIP API key when provider="transip".
+-    Please set the apiKey parameter (--set transip.apiKey="xxxx")
+-{{- end -}}
+-{{- end -}}
+-
+-{/*
+-Return the ExternalDNS service account name
+-*/}}
+-{{- define "external-dns.serviceAccountName" -}}
+-{{- if .Values.rbac.serviceAccountName -}}
+-    {{- printf "%s" (tpl .Values.rbac.serviceAccountName . ) -}}
++{{- define "deployment_api_version" -}}
++{{- if .Capabilities.APIVersions.Has "apps/v1" -}}
++{{- "apps/v1" -}}
++{{- else if .Capabilities.APIVersions.Has "apps/v1beta2" -}}
++{{- "apps/v1beta2" -}}
++{{- else if .Capabilities.APIVersions.Has "apps/v1beta1" -}}
++{{- "apps/v1beta1" -}}
+ {{- else -}}
+-    {{- printf "%s" (include "external-dns.fullname" . ) -}}
+-{{- end -}}
++{{- "extensions/v1beta1" -}}
+ {{- end -}}
++{{- end -}}
+\ No newline at end of file
+diff -uNr packages/rancher-external-dns/charts-original/templates/NOTES.txt packages/rancher-external-dns/charts/templates/NOTES.txt
+--- packages/rancher-external-dns/charts-original/templates/NOTES.txt	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/NOTES.txt	2020-04-10 09:21:46.216002335 -0700
+@@ -1,8 +1,3 @@
+-** Please be patient while the chart is being deployed **
+-
+ To verify that external-dns has started, run:
+ 
+-  kubectl --namespace={{ .Release.Namespace }} get pods -l "app.kubernetes.io/name={{ template "external-dns.name" . }},app.kubernetes.io/instance={{ .Release.Name }}"
+-
+-{{ include "external-dns.validateValues" . }}
+-{{ include "external-dns.checkRollingTags" . }}
++  kubectl --namespace={{ .Release.Namespace }} get pods -l "app={{ template "external-dns.name" . }},release={{ .Release.Name }}"
+diff -uNr packages/rancher-external-dns/charts-original/templates/psp-clusterrolebinding.yaml packages/rancher-external-dns/charts/templates/psp-clusterrolebinding.yaml
+--- packages/rancher-external-dns/charts-original/templates/psp-clusterrolebinding.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/psp-clusterrolebinding.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,15 +0,0 @@
+-{{- if .Values.rbac.pspEnabled }}
+-apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRoleBinding
+-metadata:
+-  name: {{ template "external-dns.fullname" . }}-psp
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-roleRef:
+-  apiGroup: rbac.authorization.k8s.io
+-  kind: ClusterRole
+-  name: {{ template "external-dns.fullname" . }}-psp
+-subjects:
+-  - kind: ServiceAccount
+-    name: {{ template "external-dns.serviceAccountName" . }}
+-    namespace: {{ .Release.Namespace }}
+-{{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/psp-clusterrole.yaml packages/rancher-external-dns/charts/templates/psp-clusterrole.yaml
+--- packages/rancher-external-dns/charts-original/templates/psp-clusterrole.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/psp-clusterrole.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,13 +0,0 @@
+-{{- if .Values.rbac.pspEnabled }}
+-kind: ClusterRole
+-apiVersion: rbac.authorization.k8s.io/v1
+-metadata:
+-  name: {{ template "external-dns.fullname" . }}-psp
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-rules:
+-- apiGroups: ['extensions']
+-  resources: ['podsecuritypolicies']
+-  verbs:     ['use']
+-  resourceNames:
+-  - {{ template "external-dns.fullname" . }}
+-{{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/psp.yaml packages/rancher-external-dns/charts/templates/psp.yaml
+--- packages/rancher-external-dns/charts-original/templates/psp.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/psp.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,39 +0,0 @@
+-{{- if .Values.rbac.pspEnabled }}
+-apiVersion: {{ template "podSecurityPolicy.apiVersion" . }}
+-kind: PodSecurityPolicy
+-metadata:
+-  name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-spec:
+-  privileged: false
+-  allowPrivilegeEscalation: false
+-  requiredDropCapabilities:
+-  - ALL
+-  volumes:
+-  - 'configMap'
+-  - 'emptyDir'
+-  - 'projected'
+-  - 'secret'
+-  - 'downwardAPI'
+-  - 'hostPath'
+-  hostNetwork: false
+-  hostIPC: false
+-  hostPID: false
+-  runAsUser:
+-    rule: 'MustRunAs'
+-    ranges:
+-    - min: 1001
+-      max: 1001
+-  seLinux:
+-    rule: 'RunAsAny'
+-  supplementalGroups:
+-    rule: 'MustRunAs'
+-    ranges:
+-    - min: 1001
+-      max: 1001
+-  fsGroup:
+-    rule: 'MustRunAs'
+-    ranges:
+-    - min: 1001
+-      max: 1001
+-{{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/secret.yaml packages/rancher-external-dns/charts/templates/secret.yaml
+--- packages/rancher-external-dns/charts-original/templates/secret.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/secret.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,52 +1,33 @@
+-{{- if (include "external-dns.createSecret" .) }}
++{{- if or (and .Values.aws.secretKey .Values.aws.accessKey) .Values.cloudflare.apiKey (and .Values.infoblox.wapiUsername .Values.infoblox.wapiPassword) .Values.extraEnv .Values.google.serviceAccountKey (and .Values.alibabacloud.secretKey .Values.alibabacloud.accessKey) -}}
+ apiVersion: v1
+ kind: Secret
+ metadata:
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+ type: Opaque
+ data:
+-  {{- if eq .Values.provider "aws" }}
++{{- if eq .Values.provider "aws" }}
+   credentials: {{ include "external-dns.aws-credentials" . | b64enc | quote }}
+-  {{- if .Values.aws.region }}
+   config: {{ include "external-dns.aws-config" . | b64enc | quote }}
+-  {{- end }}
+-  {{- end }}
+-  {{- if eq .Values.provider "azure" }}
+-  azure.json: {{ include "external-dns.azure-credentials" . | b64enc | quote }}
+-  {{- end }}
+-  {{- if eq .Values.provider "google" }}
++{{- end}}
++{{- if and (eq .Values.provider "google") .Values.google.serviceAccountKey }}
+   credentials.json: {{ .Values.google.serviceAccountKey | b64enc | quote }}
+-  {{- end }}
+-  {{- if eq .Values.provider "cloudflare" }}
+-  {{- if .Values.cloudflare.apiToken }}
+-  cloudflare_api_token: {{ .Values.cloudflare.apiToken | b64enc | quote }}
+-  {{- else }}
+-  cloudflare_api_key: {{ required "cloudflare.apiKey is required if cloudflare.apiToken is not provided" .Values.cloudflare.apiKey | b64enc | quote }}
+-  {{- end }}
+-  {{- end }}
+-  {{- if eq .Values.provider "designate" }}
+-  {{- if .Values.designate.username }}
+-  designate_username: {{ .Values.designate.username | b64enc | quote }}
+-  {{- end }}
+-  {{- if .Values.designate.password }}
+-  designate_password: {{ .Values.designate.password | b64enc | quote }}
+-  {{- end }}
+-  {{- end }}
+-  {{- if eq .Values.provider "digitalocean" }}
+-  digitalocean_api_token: {{ .Values.digitalocean.apiToken | b64enc | quote }}
+-  {{- end }}
+-  {{- if eq .Values.provider "infoblox" }}
++{{- end}}
++{{- if .Values.cloudflare.apiKey }}
++  cloudflare_api_key: {{ .Values.cloudflare.apiKey | b64enc | quote }}
++{{- end }}
++{{- if and .Values.infoblox.wapiUsername .Values.infoblox.wapiPassword }}
+   infoblox_wapi_username: {{ .Values.infoblox.wapiUsername | b64enc | quote }}
+   infoblox_wapi_password: {{ .Values.infoblox.wapiPassword | b64enc | quote }}
++{{- end }}
++{{- if eq .Values.provider "alibabacloud" }}
++  config.yaml: {{ include "external-dns.alibabacloud-config" . | b64enc | quote }}
++{{- end}}
++
++{{- range .Values.extraEnv }}
++  {{- if .value }}
++  {{ .name }}: {{ .value | b64enc | quote }}
+   {{- end }}
+-  {{- if eq .Values.provider "pdns" }}
+-  pdns_api_key: {{ .Values.pdns.apiKey | b64enc | quote }}
+-  {{- end }}
+-  {{- if eq .Values.provider "rfc2136" }}
+-  rfc2136_tsig_secret: {{ .Values.rfc2136.tsigSecret | b64enc | quote }}
+-  {{- end }}
+-  {{- if eq .Values.provider "transip" }}
+-  transip-api-key: {{ .Values.transip.apiKey | b64enc | quote }}
+-  {{- end }}
++{{- end }}
+ {{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/serviceaccount.yaml packages/rancher-external-dns/charts/templates/serviceaccount.yaml
+--- packages/rancher-external-dns/charts-original/templates/serviceaccount.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/serviceaccount.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,10 +1,8 @@
+-{{- if and .Values.rbac.create .Values.rbac.serviceAccountCreate -}}
++{{- if .Values.rbac.create -}}
+ apiVersion: v1
+ kind: ServiceAccount
+ metadata:
+-  name: {{ template "external-dns.serviceAccountName" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-  {{- if .Values.rbac.serviceAccountAnnotations }}
+-  annotations: {{ toYaml .Values.rbac.serviceAccountAnnotations | nindent 4 }}
+-  {{- end }}
++  labels: {{ include "external-dns.labels" . | indent 4 }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
++  name: {{ template "external-dns.fullname" . }}
+ {{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/servicemonitor.yaml packages/rancher-external-dns/charts/templates/servicemonitor.yaml
+--- packages/rancher-external-dns/charts-original/templates/servicemonitor.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/servicemonitor.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,28 +0,0 @@
+-{{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
+-apiVersion: monitoring.coreos.com/v1
+-kind: ServiceMonitor
+-metadata:
+-  name: {{ template "external-dns.fullname" . }}
+-  {{- with .Values.metrics.serviceMonitor.namespace }}
+-  namespace: {{ . }}
+-  {{- end }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-    {{- with .Values.metrics.serviceMonitor.selector }}
+-    {{ toYaml . | nindent 4 }}
+-    {{- end }}
+-spec:
+-  endpoints:
+-    - port: http
+-      path: /metrics
+-      {{- with .Values.metrics.serviceMonitor.interval }}
+-      interval: {{ . }}
+-      {{- end }}
+-      {{- with .Values.metrics.serviceMonitor.scrapeTimeout }}
+-      scrapeTimeout: {{ . }}
+-      {{- end }}
+-  namespaceSelector:
+-    matchNames:
+-      - {{ .Release.Namespace }}
+-  selector:
+-    matchLabels: {{ include "external-dns.matchLabels" . | nindent 6 }}
+-{{- end }}
+diff -uNr packages/rancher-external-dns/charts-original/templates/service.yaml packages/rancher-external-dns/charts/templates/service.yaml
+--- packages/rancher-external-dns/charts-original/templates/service.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/templates/service.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,31 +1,37 @@
+ apiVersion: v1
+ kind: Service
+ metadata:
++{{- if .Values.service.annotations }}
++  annotations:
++{{ toYaml .Values.service.annotations | indent 4 }}
++{{- end }}
++  labels:
++    app: {{ template "external-dns.name" . }}
++    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
++    heritage: {{ .Release.Service }}
++    release: {{ .Release.Name }}
+   name: {{ template "external-dns.fullname" . }}
+-  labels: {{ include "external-dns.labels" . | nindent 4 }}
+-  {{- if .Values.service.annotations }}
+-  annotations: {{ toYaml .Values.service.annotations | nindent 4 }}
+-  {{- end }}
+ spec:
+-  {{- if .Values.service.clusterIP }}
+-  clusterIP: {{ .Values.service.clusterIP }}
+-  {{- end }}
+-  {{- if .Values.service.externalIPs }}
+-  externalIPs: {{ toYaml .Values.service.externalIPs | nindent 4 }}
+-  {{- end }}
+-  {{- if .Values.service.loadBalancerIP }}
+-  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+-  {{- end }}
+-  {{- if .Values.service.loadBalancerSourceRanges }}
+-  loadBalancerSourceRanges: {{ toYaml .Values.service.loadBalancerSourceRanges | nindent 4 }}
+-  {{- end }}
++{{- if .Values.service.clusterIP }}
++  clusterIP: "{{ .Values.service.clusterIP }}"
++{{- end }}
++{{- if .Values.service.externalIPs }}
++  externalIPs:
++{{ toYaml .Values.service.externalIPs | indent 4 }}
++{{- end }}
++{{- if .Values.service.loadBalancerIP }}
++  loadBalancerIP: "{{ .Values.service.loadBalancerIP }}"
++{{- end }}
++{{- if .Values.service.loadBalancerSourceRanges }}
++  loadBalancerSourceRanges:
++{{ toYaml .Values.service.loadBalancerSourceRanges | indent 4 }}
++{{- end }}
+   ports:
+-    - name: http
+-      port: {{ .Values.service.port }}
++    - port: {{ .Values.service.servicePort }}
+       protocol: TCP
+-      targetPort: http
+-      {{- if and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort)) }}
+-      nodePort: {{ .Values.service.nodePort  }}
+-      {{- end }}
+-  selector: {{ include "external-dns.matchLabels" . | nindent 4 }}
+-  type: {{ .Values.service.type }}
++      targetPort: 7979
++      name: http
++  selector:
++    app: {{ template "external-dns.name" . }}
++    release: {{ .Release.Name }}
++  type: "{{ .Values.service.type }}"
+diff -uNr packages/rancher-external-dns/charts-original/values-production.yaml packages/rancher-external-dns/charts/values-production.yaml
+--- packages/rancher-external-dns/charts-original/values-production.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/values-production.yaml	1969-12-31 17:00:00.000000000 -0700
+@@ -1,533 +0,0 @@
+-## Global Docker image parameters
+-## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+-## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+-##
+-# global:
+-#   imageRegistry: myRegistryName
+-#   imagePullSecrets:
+-#     - myRegistryKeySecretName
+-
+-## Bitnami external-dns image version
+-## ref: https://hub.docker.com/r/bitnami/external-dns/tags/
+-##
+-image:
+-  registry: docker.io
+-  repository: bitnami/external-dns
+-  tag: 0.7.1-debian-10-r2
+-  ## Specify a imagePullPolicy
+-  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+-  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+-  ##
+-  pullPolicy: IfNotPresent
+-  ## Optionally specify an array of imagePullSecrets.
+-  ## Secrets must be manually created in the namespace.
+-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+-  ##
+-  # pullSecrets:
+-  #   - myRegistryKeySecretName
+-
+-## String to partially override external-dns.fullname template (will maintain the release name)
+-# nameOverride:
+-
+-## String to fully override external-dns.fullname template
+-# fullnameOverride:
+-
+-## K8s resources type to be observed for new DNS entries by ExternalDNS
+-##
+-sources:
+-  # - crd
+-  - service
+-  - ingress
+-
+-## DNS provider where the DNS records will be created. Available providers are:
+-## - aws, azure, cloudflare, coredns, designate, digitalocoean, google, infoblox, rfc2136, transip
+-##
+-provider: aws
+-
+-## Flags related to processing sources
+-## ref: https://github.com/kubernetes-sigs/external-dns/blob/master/pkg/apis/externaldns/types.go#L272
+-##
+-## Limit sources of endpoints to a specific namespace (default: all namespaces)
+-##
+-namespace: ""
+-## Templated strings that are used to generate DNS names from sources that don't define a hostname themselves
+-##
+-fqdnTemplates: []
+-## Combine FQDN template and annotations instead of overwriting
+-##
+-combineFQDNAnnotation: false
+-## Ignore hostname annotation when generating DNS names, valid only when fqdn-template is set
+-##
+-ignoreHostnameAnnotation: false
+-## Allow external-dns to publish DNS records for ClusterIP services
+-##
+-publishInternalServices: false
+-## Allow external-dns to publish host-ip for headless services
+-##
+-publishHostIP: false
+-## The service types to take care about (default: all, options: ClusterIP, NodePort, LoadBalancer, ExternalName)
+-##
+-serviceTypeFilter: []
+-
+-## AWS configuration to be set via arguments/env. variables
+-##
+-aws:
+-  ## AWS credentials
+-  ##
+-  credentials:
+-    secretKey: ""
+-    accessKey: ""
+-    ## pre external-dns 0.5.9 home dir should be `/root/.aws`
+-    ##
+-    mountPath: "/.aws"
+-    ## Use an existing secret with key "credentials" defined.
+-    ## This ignores aws.credentials.secretKey, and aws.credentials.accessKey
+-    ##
+-    # secretName:
+-
+-  ## AWS region
+-  ##
+-  region: "us-east-1"
+-  ## Zone Filter. Available values are: public, private
+-  ##
+-  zoneType: ""
+-  ## AWS Role to assume
+-  ##
+-  assumeRoleArn: ""
+-  ## Maximum number of changes that will be applied in each batch
+-  ##
+-  batchChangeSize: 1000
+-  ## Zone Tag Filter
+-  ##
+-  zoneTags: []
+-  ## Enable AWS Prefer CNAME. Available values are: true, false
+-  ##
+-  preferCNAME: ""
+-  ## Enable AWS evaluation of target health. Available values are: true, false
+-  ##
+-  evaluateTargetHealth: ""
+-
+-## Azure configuration to be set via arguments/env. variables
+-##
+-azure:
+-  ## When a secret to load azure.json is not specified,
+-  ## the host's /etc/kubernetes/azure.json will be used
+-  ##
+-  ## Deprecated: please use tenantId, subscriptionId, aadClientId and aadClientSecret values instead.
+-  ##
+-  secretName: ""
+-  ## Azure resource group to use
+-  ##
+-  cloud: ""
+-  ## Azure Cloud to use
+-  ##
+-  resourceGroup: ""
+-  ## Azure tenant ID to use
+-  ##
+-  tenantId: ""
+-  ## Azure subscription ID to use
+-  ##
+-  subscriptionId: ""
+-  ## Azure Application Client ID to use
+-  ##
+-  aadClientId: ""
+-  ## Azure Application Client Secret to use
+-  ##
+-  aadClientSecret: ""
+-  ## If you use Azure MSI, this should be set to true
+-  ##
+-  useManagedIdentityExtension: false
+-
+-## Cloudflare configuration to be set via arguments/env. variables
+-##
+-cloudflare:
+-  ## `CF_API_TOKEN` to set in the environment
+-  ##
+-  apiToken: ""
+-  ## `CF_API_KEY` to set in the environment
+-  ##
+-  apiKey: ""
+-  ## Use an existing secret with keys "cloudflare_api_token" or "cloudflare_api_key" defined.
+-  ## This ignores cloudflare.apiToken, and cloudflare.apiKey
+-  ##
+-  # secretName:
+-  ## `CF_API_EMAIL` to set in the environment
+-  ##
+-  email: ""
+-  ## Enable the proxy feature of Cloudflare
+-  ##
+-  proxied: true
+-
+-## CoreDNS configuration to be set via arguments/env variables
+-##
+-coredns:
+-  ## Comma-separated list of the etcd endpoints
+-  ## Secure (https) endpoints can be used as well, in that case `etcdTLS` section
+-  ## should be filled in accordingly
+-  ##
+-  etcdEndpoints: "https://etcd-extdns:2379"
+-  ## Configuration of the secure communication and client authentication to the etcd cluster
+-  ## If enabled all the values under this key must hold a valid data
+-  ##
+-  etcdTLS:
+-    ## Enable or disable secure communication and client authentication to the etcd cluster
+-    ##
+-    enabled: true
+-    ## Name of the existing secret containing cert files for client communication
+-    ## ref: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/security.md
+-    ## ref (secret creation):
+-    ##  https://github.com/bitnami/charts/tree/master/bitnami/etcd#configure-certificates-for-client-communication
+-    ##
+-    secretName: "etcd-client-certs"
+-    ## Location of the mounted certificates inside external-dns pod
+-    ##
+-    mountPath: "/etc/coredns/tls/etcd"
+-    ## CA PEM file used to sign etcd TLS cert, should exist in the secret provided above
+-    ##
+-    caFilename: "ca.crt"
+-    ## Certificate PEM file, should exist in the secret provided above
+-    ## Will be used by external-dns to authenticate against etcd
+-    ##
+-    certFilename: "cert.pem"
+-    ## Private key PEM file, should exist in the secret provided above
+-    ## Will be used by external-dns to authenticate against etcd
+-    ##
+-    keyFilename: "key.pem"
+-
+-## OpenStack Designate provider configuration to be set via arguments/env. variables
+-##
+-designate:
+-  ## Set Openstack environment variables (optional). Username and password will be saved in a kubernetes secret
+-  ## The alternative to this is to export the necessary Openstack environment variables in the extraEnv argument
+-  ##
+-  # username: "someuser"
+-  # password: "p@55w0rd"
+-  # authUrl: "https://mykeystone.example.net:5000/v3/"
+-  # regionName: "dev"
+-  # userDomainName: "development"
+-  # projectName: "myteamname"
+-
+-  ## Use a host path custom CA (optional)
+-  ## This conflicts setting the above customCA to true and chart rendering will fail if you set customCA to true and specify customCAHostPath
+-  ##
+-  # customCAHostPath: /path/to/cafile
+-
+-  ## Use a custom CA (optional)
+-  ##
+-  customCA:
+-    enabled: false
+-    ## The content of the custom CA file
+-    ##
+-    content: ""
+-    ## Location to mount custom CA
+-    ##
+-    mountPath: "/config/designate"
+-    ## Custom CA filename
+-    ##
+-    filename: "designate-ca.pem"
+-
+-## DigitalOcean configuration to be set via arguments/env. variables
+-##
+-digitalocean:
+-  ## `DO_TOKEN` to set in the environment
+-  ##
+-  apiToken: ""
+-  ## Use an existing secret with key "digitalocean_api_token" defined.
+-  ## This ignores digitalocean.apiToken
+-  ##
+-  # secretName:
+-
+-## Google configuration to be set via arguments/env. variables
+-##
+-google:
+-  ## Google Project to use
+-  ##
+-  project: ""
+-  ## Google Application Credentials
+-  ##
+-  serviceAccountSecret: ""
+-  serviceAccountSecretKey: "credentials.json"
+-  serviceAccountKey: ""
+-
+-## Infoblox configuration to be set via arguments/env. variables
+-##
+-infoblox:
+-  ## Required keys
+-  ##
+-  wapiUsername: "admin"
+-  wapiPassword: ""
+-  gridHost: ""
+-  ## Optional keys
+-  ##
+-  domainFilter: ""
+-  noSslVerify: false
+-  wapiPort: ""
+-  wapiVersion: ""
+-  wapiConnectionPoolSize: ""
+-  wapiHttpTimeout: ""
+-
+-## RFC 2136 configuration to be set via arguments/env. variables
+-##
+-rfc2136:
+-  host: ""
+-  port: 53
+-  zone: ""
+-  tsigSecret: ""
+-  tsigSecretAlg: hmac-sha256
+-  tsigKeyname: externaldns-key
+-  tsigAxfr: true
+-
+-## PowerDNS configuration to be set via arguments/env. variables
+-##
+-pdns:
+-  apiUrl: ""
+-  apiPort: "8081"
+-  apiKey: ""
+-
+-## TransIP configuration to be set via arguments/env. variables
+-##
+-transip:
+-  ## Account name to be used
+-  ##
+-  account: ""
+-  ##
+-  ## API key that is authorised for the account
+-  apiKey: ""
+-
+-## Limit possible target zones by domain suffixes (optional)
+-##
+-domainFilters: []
+-## Limit possible target zones by zone id (optional)
+-##
+-zoneIdFilters: []
+-## Filter sources managed by external-dns via annotation using label selector semantics (optional)
+-##
+-annotationFilter: ""
+-## When enabled, prints DNS record changes rather than actually performing them
+-##
+-dryRun: false
+-## Adjust the interval for DNS updates
+-##
+-interval: "1m"
+-## When enabled, triggers run loop on create/update/delete events (optional, in addition of regular interval)
+-##
+-triggerLoopOnEvent: false
+-## Verbosity of the ExternalDNS logs. Available values are:
+-## - panic, debug, info, warn, error, fatal
+-##
+-logLevel: info
+-## Formats of the ExternalDNS logs. Available values are:
+-## - text, json
+-##
+-logFormat: text
+-## Modify how DNS records are sychronized between sources and providers (options: sync, upsert-only)
+-##
+-policy: upsert-only
+-## Registry Type. Available types are: txt, noop
+-## ref: https://github.com/kubernetes-sigs/external-dns/blob/master/docs/proposal/registry.md
+-##
+-registry: "txt"
+-## TXT Registry Identifier
+-##
+-txtOwnerId: ""
+-## Prefix to create a TXT record with a name following the pattern prefix.<CNAME record>
+-##
+-# txtPrefix: ""
+-## Load balancer service to be used; ie: custom-istio-namespace/custom-istio-ingressgateway.
+-## Omit to use the default (istio-system/istio-ingressgateway)
+-##
+-istioIngressGateways: []
+-
+-## Extra Arguments to passed to external-dns
+-##
+-extraArgs: {}
+-## Extra env. variable to set on external-dns container.
+-##
+-## extraEnv:
+-## - name: VARNAME1
+-##   value: value1
+-## - name: VARNAME2
+-##   valueFrom:
+-##     secretKeyRef:
+-##       name: existing-secret
+-##       key: varname2-key
+-extraEnv: []
+-
+-## Replica count
+-##
+-replicas: 3
+-
+-## Affinity for pod assignment (this value is evaluated as a template)
+-## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+-##
+-affinity: {}
+-## Node labels for pod assignment (this value is evaluated as a template)
+-## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+-##
+-nodeSelector: {}
+-## Tolerations for pod assignment (this value is evaluated as a template)
+-## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+-##
+-tolerations: []
+-## Annotations for external-dns pods
+-##
+-podAnnotations: {}
+-## Additional labels for the pod(s).
+-##
+-podLabels: {}
+-## Pod priority class name
+-##
+-priorityClassName: ""
+-
+-## Options for the source type "crd"
+-##
+-crd:
+-  ## Install and use the integrated DNSEndpoint CRD
+-  create: false
+-  ## Change these to use an external DNSEndpoint CRD (E.g. from kubefed)
+-  apiversion: ""
+-  kind: ""
+-
+-## Kubernetes svc configutarion
+-##
+-service:
+-  ## Kubernetes svc type
+-  ##
+-  type: ClusterIP
+-  port: 7979
+-  ## Specify the nodePort value for the LoadBalancer and NodePort service types for the client port
+-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+-  ##
+-  # nodePort:
+-  ## Static clusterIP or None for headless services
+-  ##
+-  # clusterIP: ""
+-  ## External IP list to use with ClusterIP service type
+-  ##
+-  externalIPs: []
+-  ## Use loadBalancerIP to request a specific static IP,
+-  ## otherwise leave blank
+-  ##
+-  # loadBalancerIP:
+-  ## Address that are allowed when svc is LoadBalancer
+-  ##
+-  loadBalancerSourceRanges: []
+-  ## Provide any additional annotations which may be required. This can be used to
+-  ## set the LoadBalancer service type to internal only.
+-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+-  ##
+-  annotations: {}
+-
+-## RBAC parameteres
+-## https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+-##
+-rbac:
+-  create: true
+-  ## Determine whether a Service Account should be created
+-  ## or reuse a exiting one
+-  ##
+-  serviceAccountCreate: true
+-
+-  ## Service Account for pods
+-  ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+-  ##
+-  serviceAccountName:
+-
+-  ## Annotations for the Service Account
+-  ##
+-  serviceAccountAnnotations: {}
+-  ## RBAC API version
+-  ##
+-  apiVersion: v1beta1
+-  ## Podsecuritypolicy
+-  ##
+-  pspEnabled: false
+-
+-## Kubernetes Security Context
+-## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+-##
+-securityContext:
+-  allowPrivilegeEscalation: false
+-  readOnlyRootFilesystem: true
+-  capabilities:
+-    drop: ["ALL"]
+-podSecurityContext:
+-  fsGroup: 1001
+-  runAsUser: 1001
+-  runAsNonRoot: true
+-
+-## Configure resource requests and limits
+-## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+-##
+-resources: {}
+-#  limits:
+-#    cpu: 50m
+-#    memory: 50Mi
+-#  requests:
+-#    memory: 50Mi
+-#    cpu: 10m
+-
+-## Liveness Probe. The block is directly forwarded into the deployment, so you can use whatever livenessProbe configuration you want.
+-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+-##
+-livenessProbe:
+-  httpGet:
+-    path: /healthz
+-    port: http
+-  initialDelaySeconds: 10
+-  periodSeconds: 10
+-  timeoutSeconds: 5
+-  failureThreshold: 2
+-  successThreshold: 1
+-## Readiness Probe. The block is directly forwarded into the deployment, so you can use whatever readinessProbe configuration you want.
+-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+-##
+-readinessProbe:
+-  httpGet:
+-    path: /healthz
+-    port: http
+-  initialDelaySeconds: 5
+-  periodSeconds: 10
+-  timeoutSeconds: 5
+-  failureThreshold: 6
+-  successThreshold: 1
+-
+-## Configure extra volumes
+-extraVolumes: []
+-
+-## Configure extra volumeMounts
+-extraVolumeMounts: []
+-
+-## Prometheus Exporter / Metrics
+-##
+-metrics:
+-  enabled: true
+-  ## Metrics exporter pod Annotation and Labels
+-  ##
+-  # podAnnotations:
+-  #   prometheus.io/scrape: "true"
+-  #   prometheus.io/port: "7979"
+-
+-  ## Prometheus Operator ServiceMonitor configuration
+-  ##
+-  serviceMonitor:
+-    enabled: false
+-    ## Namespace in which Prometheus is running
+-    ##
+-    # namespace: monitoring
+-
+-    ## Interval at which metrics should be scraped.
+-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+-    ##
+-    # interval: 10s
+-
+-    ## Timeout after which the scrape is ended
+-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+-    ##
+-    # scrapeTimeout: 10s
+-
+-    ## ServiceMonitor selector labels
+-    ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+-    ##
+-    # selector:
+-    #   prometheus: my-prometheus
+diff -uNr packages/rancher-external-dns/charts-original/values.yaml packages/rancher-external-dns/charts/values.yaml
+--- packages/rancher-external-dns/charts-original/values.yaml	2020-04-03 00:01:47.000000000 -0700
++++ packages/rancher-external-dns/charts/values.yaml	2020-04-10 09:21:46.216002335 -0700
+@@ -1,263 +1,76 @@
+-## Global Docker image parameters
+-## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+-## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+-##
+-# global:
+-#   imageRegistry: myRegistryName
+-#   imagePullSecrets:
+-#     - myRegistryKeySecretName
+-
+-## Bitnami external-dns image version
+-## ref: https://hub.docker.com/r/bitnami/external-dns/tags/
+-##
++## Details about the image to be pulled.
+ image:
+-  registry: docker.io
+-  repository: bitnami/external-dns
+-  tag: 0.7.1-debian-10-r2
+-  ## Specify a imagePullPolicy
+-  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+-  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+-  ##
++  repository: rancher/kubernetes-external-dns
++  tag: v0.6.0
++  pullSecrets: []
+   pullPolicy: IfNotPresent
+-  ## Optionally specify an array of imagePullSecrets.
+-  ## Secrets must be manually created in the namespace.
+-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+-  ##
+-  # pullSecrets:
+-  #   - myRegistryKeySecretName
+ 
+-## String to partially override external-dns.fullname template (will maintain the release name)
+-# nameOverride:
+-
+-## String to fully override external-dns.fullname template
+-# fullnameOverride:
+-
+-## K8s resources type to be observed for new DNS entries by ExternalDNS
+-##
++## This controls which types of resource external-dns should 'watch' for new
++## DNS entries.
+ sources:
+-  # - crd
+   - service
+   - ingress
+ 
+-## DNS provider where the DNS records will be created. Available providers are:
+-## - aws, azure, azure-private-dns, cloudflare, coredns, designate, digitalocean, google, infoblox, rfc2136, transip
+-##
++# Allow external-dns to publish DNS records for ClusterIP services (optional)
++publishInternalServices: false
++
++## The DNS provider where the DNS records will be created (options: aws, google, inmemory, azure, alibabacloud )
+ provider: aws
+ 
+-## Flags related to processing sources
+-## ref: https://github.com/kubernetes-sigs/external-dns/blob/master/pkg/apis/externaldns/types.go#L272
+-##
+-## Limit sources of endpoints to a specific namespace (default: all namespaces)
+-##
+-namespace: ""
+-## Templated strings that are used to generate DNS names from sources that don't define a hostname themselves
+-##
+-fqdnTemplates: []
+-## Combine FQDN template and annotations instead of overwriting
+-##
+-combineFQDNAnnotation: false
+-## Ignore hostname annotation when generating DNS names, valid only when fqdn-template is set
+-##
+-ignoreHostnameAnnotation: false
+-## Allow external-dns to publish DNS records for ClusterIP services
+-##
+-publishInternalServices: false
+-## Allow external-dns to publish host-ip for headless services
+-##
+-publishHostIP: false
+-## The service types to take care about (default: all, options: ClusterIP, NodePort, LoadBalancer, ExternalName)
+-##
+-serviceTypeFilter: []
++# Configurations for Alibabacloud provider
++alibabacloud:
++  accessKey: ""
++  secretKey: ""
++  # Filter for zones of this type (optional, options: public, private or no value for both)
++  zoneType: ""
+ 
+-## AWS configuration to be set via arguments/env. variables
+-##
++# AWS Access keys to inject as environment variables
+ aws:
+-  ## AWS credentials
+-  ##
+-  credentials:
+-    secretKey: ""
+-    accessKey: ""
+-    ## pre external-dns 0.5.9 home dir should be `/root/.aws`
+-    ##
+-    mountPath: "/.aws"
+-    ## Use an existing secret with key "credentials" defined.
+-    ## This ignores aws.credentials.secretKey, and aws.credentials.accessKey
+-    ##
+-    # secretName:
+-
+-  ## AWS region
+-  ##
++  secretKey: ""
++  accessKey: ""
++  # pre external-dns 0.5.9 home dir should be `/root/.aws`
++  credentialsPath: "/.aws"
++  roleArn: ""
+   region: "us-east-1"
+-  ## Zone Filter. Available values are: public, private
+-  ##
++  # Filter for zones of this type (optional, options: public, private)
+   zoneType: ""
+-  ## AWS Role to assume
+-  ##
+-  assumeRoleArn: ""
+-  ## Maximum number of changes that will be applied in each batch
+-  ##
+-  batchChangeSize: 1000
+-  ## AWS Zone tags
+-  ##
+-  zoneTags: []
+-  ## Enable AWS Prefer CNAME. Available values are: true, false
+-  ##
+-  preferCNAME: ""
+-  ## Enable AWS evaluation of target health. Available values are: true, false
+-  ##
+-  evaluateTargetHealth: ""
+-## Azure configuration to be set via arguments/env. variables
+-##
++
+ azure:
+-  ## When a secret to load azure.json is not specified,
+-  ## the host's /etc/kubernetes/azure.json will be used
+-  ##
+-  ## Deprecated: please use tenantId, subscriptionId, aadClientId and aadClientSecret values instead.
+-  ##
++# If you don't specify a secret to load azure.json from, you will get the host's /etc/kubernetes/azure.json
+   secretName: ""
+-  ## Azure resource group to use
+-  ##
+-  cloud: ""
+-  ## Azure Cloud to use
+-  ##
+-  resourceGroup: ""
+-  ## Azure tenant ID to use
+-  ##
+-  tenantId: ""
+-  ## Azure subscription ID to use
+-  ##
+-  subscriptionId: ""
+-  ## Azure Application Client ID to use
+-  ##
+-  aadClientId: ""
+-  ## Azure Application Client Secret to use
+-  ##
+-  aadClientSecret: ""
+-  ## If you use Azure MSI, this should be set to true
+-  ##
+-  useManagedIdentityExtension: false
+ 
+-## Cloudflare configuration to be set via arguments/env. variables
+-##
++# Cloudflare keys to inject as environment variables
+ cloudflare:
+-  ## `CF_API_TOKEN` to set in the environment
+-  ##
+-  apiToken: ""
+-  ## `CF_API_KEY` to set in the environment
+-  ##
+   apiKey: ""
+-  ## Use an existing secret with keys "cloudflare_api_token" or "cloudflare_api_key" defined.
+-  ## This ignores cloudflare.apiToken, and cloudflare.apiKey
+-  ##
+-  # secretName:
+-  ## `CF_API_EMAIL` to set in the environment
+-  ##
+   email: ""
+-  ## Enable the proxy feature of Cloudflare
+-  ##
+   proxied: true
+ 
+-## CoreDNS configuration to be set via arguments/env variables
+-##
+-coredns:
+-  ## Comma-separated list of the etcd endpoints
+-  ## Secure (https) endpoints can be used as well, in that case `etcdTLS` section
+-  ## should be filled in accordingly
+-  ##
+-  etcdEndpoints: "http://etcd-extdns:2379"
+-  ## Configuration of the secure communication and client authentication to the etcd cluster
+-  ## If enabled all the values under this key must hold a valid data
+-  ##
+-  etcdTLS:
+-    ## Enable or disable secure communication and client authentication to the etcd cluster
+-    ##
+-    enabled: false
+-    ## Name of the existing secret containing cert files for client communication
+-    ## ref: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/security.md
+-    ## ref (secret creation):
+-    ##  https://github.com/bitnami/charts/tree/master/bitnami/etcd#configure-certificates-for-client-communication
+-    ##
+-    secretName: "etcd-client-certs"
+-    ## Location of the mounted certificates inside external-dns pod
+-    ##
+-    mountPath: "/etc/coredns/tls/etcd"
+-    ## CA PEM file used to sign etcd TLS cert, should exist in the secret provided above
+-    ##
+-    caFilename: "ca.crt"
+-    ## Certificate PEM file, should exist in the secret provided above
+-    ## Will be used by external-dns to authenticate against etcd
+-    ##
+-    certFilename: "cert.pem"
+-    ## Private key PEM file, should exist in the secret provided above
+-    ## Will be used by external-dns to authenticate against etcd
+-    ##
+-    keyFilename: "key.pem"
+-
+-## OpenStack Designate provider configuration to be set via arguments/env. variables
+-##
++# Configuration for OpenStack Designate provider
+ designate:
+-  ## Set Openstack environment variables (optional). Username and password will be saved in a kubernetes secret
+-  ## The alternative to this is to export the necessary Openstack environment variables in the extraEnv argument
+-  ##
+-  # username: "someuser"
+-  # password: "p@55w0rd"
+-  # authUrl: "https://mykeystone.example.net:5000/v3/"
+-  # regionName: "dev"
+-  # userDomainName: "development"
+-  # projectName: "myteamname"
+-
+-  ## Use a host path custom CA (optional)
+-  ## This conflicts setting the above customCA to true and chart rendering will fail if you set customCA to true and specify customCAHostPath
+-  ##
+-  # customCAHostPath: /path/to/cafile
+-
+-  ## Use a custom CA (optional)
+-  ##
++  # A custom CA (optional)
+   customCA:
++    # Turn custom CA on or off
+     enabled: false
+-    ## The content of the custom CA file
+-    ##
++    # The content of the custom CA file
+     content: ""
+-    ## Location to mount custom CA
+-    ##
+-    mountPath: "/config/designate"
+-    ## Custom CA filename
+-    ##
++    # Location to mount custom CA
++    directory: "/config/designate"
++    # Filename of the custom CA
+     filename: "designate-ca.pem"
+ 
+-## DigitalOcean configuration to be set via arguments/env. variables
+-##
+-digitalocean:
+-  ## `DO_TOKEN` to set in the environment
+-  ##
+-  apiToken: ""
+-  ## Use an existing secret with key "digitalocean_api_token" defined.
+-  ## This ignores digitalocean.apiToken
+-  ##
+-  # secretName:
+-
+-## Google configuration to be set via arguments/env. variables
+-##
++# When using the Google provider, specify the Google project (required when provider=google)
+ google:
+-  ## Google Project to use
+-  ##
+   project: ""
+-  ## Google Application Credentials
+-  ##
+   serviceAccountSecret: ""
+-  serviceAccountSecretKey: "credentials.json"
+   serviceAccountKey: ""
+ 
+-## Infoblox configuration to be set via arguments/env. variables
+-##
++# Infoblox keys to inject
+ infoblox:
+-  ## Required keys
+-  ##
+-  wapiUsername: "admin"
++  # Required keys:
++  wapiUsername: ""
+   wapiPassword: ""
+   gridHost: ""
+-  ## Optional keys
+-  ##
++  # Optional keys:
+   domainFilter: ""
+   noSslVerify: false
+   wapiPort: ""
+@@ -265,270 +78,100 @@
+   wapiConnectionPoolSize: ""
+   wapiHttpTimeout: ""
+ 
+-## RFC 2136 configuration to be set via arguments/env. variables
+-##
+-rfc2136:
+-  host: ""
+-  port: 53
+-  zone: ""
+-  tsigSecret: ""
+-  tsigSecretAlg: hmac-sha256
+-  tsigKeyname: externaldns-key
+-  tsigAxfr: true
+-
+-## PowerDNS configuration to be set via arguments/env. variables
+-##
+-pdns:
+-  apiUrl: ""
+-  apiPort: "8081"
+-  apiKey: ""
+-
+-## TransIP configuration to be set via arguments/env. variables
+-##
+-transip:
+-  ## Account name to be used
+-  ##
+-  account: ""
+-  ##
+-  ## API key that is authorised for the account
+-  apiKey: ""
+-
+ ## Limit possible target zones by domain suffixes (optional)
+-##
+ domainFilters: []
+ ## Limit possible target zones by zone id (optional)
+-##
+ zoneIdFilters: []
+-## Filter sources managed by external-dns via annotation using label selector semantics (optional)
+-##
++# Filter sources managed by external-dns via annotation using label selector semantics (default: all sources)
+ annotationFilter: ""
+-## When enabled, prints DNS record changes rather than actually performing them
+-##
+-dryRun: false
+-## When enabled, triggers run loop on create/update/delete events (optional, in addition of regular interval)
+-##
+-triggerLoopOnEvent: false
+ ## Adjust the interval for DNS updates
+-##
+ interval: "1m"
+-## Verbosity of the ExternalDNS logs. Available values are:
+-## - panic, debug, info, warn, error, fatal
+-##
+-logLevel: info
+-## Formats of the ExternalDNS logs. Available values are:
+-## - text, json
+-##
+-logFormat: text
+-## Modify how DNS records are sychronized between sources and providers (options: sync, upsert-only)
+-##
+-policy: upsert-only
+-## Registry Type. Available types are: txt, noop
+-## ref: https://github.com/kubernetes-sigs/external-dns/blob/master/docs/proposal/registry.md
+-##
++
++# Registry to use for ownership (txt or noop)
+ registry: "txt"
+-## TXT Registry Identifier
+-##
+-txtOwnerId: ""
+-## Prefix to create a TXT record with a name following the pattern prefix.<CNAME record>
+-##
+-# txtPrefix: ""
+-## Load balancer service to be used; ie: custom-istio-namespace/custom-istio-ingressgateway.
+-## Omit to use the default (istio-system/istio-ingressgateway)
+-##
+-istioIngressGateways: []
+ 
+-## Extra Arguments to passed to external-dns
+-##
+-extraArgs: {}
+-## Extra env. variable to set on external-dns container.
+-##
+-## extraEnv:
+-## - name: VARNAME1
+-##   value: value1
+-## - name: VARNAME2
+-##   valueFrom:
+-##     secretKeyRef:
+-##       name: existing-secret
+-##       key: varname2-key
+-extraEnv: []
++# When using the TXT registry, a name that identifies this instance of ExternalDNS
++txtOwnerId: ""
+ 
+-## Replica count
+-##
+-replicas: 1
++# When enabled, prints DNS record changes rather than actually performing them
++dryRun: false
+ 
+-## Affinity for pod assignment (this value is evaluated as a template)
+-## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+-##
+-affinity: {}
+-## Node labels for pod assignment (this value is evaluated as a template)
+-## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
++## Node labels for pod assignment
++## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+ ##
+ nodeSelector: {}
+-## Tolerations for pod assignment (this value is evaluated as a template)
+-## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+-##
++
++## List of node taints to tolerate (requires Kubernetes >= 1.6)
+ tolerations: []
+-## Annotations for external-dns pods
++
++## Modify how DNS records are sychronized between sources and providers (options: sync, upsert-only )
++policy: upsert-only
++
++## Annotations to be added to pods
+ ##
+ podAnnotations: {}
+-## Additional labels for the pod(s).
+-##
++
+ podLabels: {}
+-## Pod priority class name
+-##
+-priorityClassName: ""
+ 
+-## Options for the source type "crd"
+-##
+-crd:
+-  ## Install and use the integrated DNSEndpoint CRD
+-  create: false
+-  ## Change these to use an external DNSEndpoint CRD (E.g. from kubefed)
+-  apiversion: ""
+-  kind: ""
++# Verbosity of the logs (options: panic, debug, info, warn, error, fatal)
++logLevel: info
+ 
+-## Kubernetes svc configutarion
+-##
+-service:
+-  ## Kubernetes svc type
+-  ##
+-  type: ClusterIP
+-  port: 7979
+-  ## Specify the nodePort value for the LoadBalancer and NodePort service types for the client port
+-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+-  ##
+-  # nodePort:
+-  ## Static clusterIP or None for headless services
+-  ##
+-  # clusterIP: ""
+-  ## External IP list to use with ClusterIP service type
+-  ##
+-  externalIPs: []
+-  ## Use loadBalancerIP to request a specific static IP,
+-  ## otherwise leave blank
+-  ##
+-  # loadBalancerIP:
+-  ## Address that are allowed when svc is LoadBalancer
+-  ##
+-  loadBalancerSourceRanges: []
+-  ## Provide any additional annotations which may be required. This can be used to
+-  ## set the LoadBalancer service type to internal only.
+-  ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+-  ##
+-  annotations: {}
++extraArgs: {}
+ 
+-## RBAC parameteres
+-## https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+-##
+-rbac:
+-  create: true
+-  ## Determine whether a Service Account should be created
+-  ## or reuse a exiting one
+-  ##
+-  serviceAccountCreate: true
++# Extra environment variables which will be saved in a release-specific secret
++# or retrieved via valueFrom.
++# extraEnv:
++# - name: SECRET_TO_SAVE
++#   value: secret_value
++# - name: AWS_ACCESS_KEY_ID
++#   valueFrom:
++#     secretKeyRef:
++#       name: existing-secret
++#       key: access-key-id
++extraEnv: []
+ 
+-  ## Service Account for pods
+-  ## https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+-  ##
+-  serviceAccountName:
++## CPU and Memory limit and request for external-dns
++resources:
++  limits:
++    memory: 100Mi
++    cpu: 200m
++  requests:
++    memory: 50Mi
++    cpu: 100m
+ 
+-  ## Annotations for the Service Account
+-  ##
+-  serviceAccountAnnotations: {}
+-  ## RBAC API version
++rbac:
++  ## If true, create & use RBAC resources
+   ##
++  create: false
++  # Beginning with Kubernetes 1.8, the api is stable and v1 can be used.
+   apiVersion: v1beta1
+-  ## Podsecuritypolicy
++
++  ## Ignored if rbac.create is true
+   ##
+-  pspEnabled: false
++  serviceAccountName: default
+ 
+-## Kubernetes Security Context
+-## https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+-## Example:
+-## securityContext:
+-##   allowPrivilegeEscalation: false
+-##   readOnlyRootFilesystem: true
+-##   capabilities:
+-##     drop: ["ALL"]
+-##
+ securityContext: {}
+-podSecurityContext:
+-  fsGroup: 1001
+-  runAsUser: 1001
++  # readOnlyRootFilesystem: true
+   # runAsNonRoot: true
++  # runAsUser: 65534 # 65534 is nobody - revise aws.credentialsPath when changing uid
++  # capabilities:
++  #   drop: ["ALL"]
+ 
+-## Configure resource requests and limits
+-## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+-##
+-resources: {}
+-#  limits:
+-#    cpu: 50m
+-#    memory: 50Mi
+-#  requests:
+-#    memory: 50Mi
+-#    cpu: 10m
+-
+-## Liveness Probe. The block is directly forwarded into the deployment, so you can use whatever livenessProbe configuration you want.
+-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+-##
+-livenessProbe:
+-  httpGet:
+-    path: /healthz
+-    port: http
+-  initialDelaySeconds: 10
+-  periodSeconds: 10
+-  timeoutSeconds: 5
+-  failureThreshold: 2
+-  successThreshold: 1
+-## Readiness Probe. The block is directly forwarded into the deployment, so you can use whatever readinessProbe configuration you want.
+-## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/
+-##
+-readinessProbe:
+-  httpGet:
+-    path: /healthz
+-    port: http
+-  initialDelaySeconds: 5
+-  periodSeconds: 10
+-  timeoutSeconds: 5
+-  failureThreshold: 6
+-  successThreshold: 1
++service:
++  annotations: {}
++  clusterIP: ""
+ 
+-## Configure extra volumes
+-extraVolumes: []
++  ## List of IP addresses at which the service is available
++  ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
++  ##
++  externalIPs: []
+ 
+-## Configure extra volumeMounts
+-extraVolumeMounts: []
++  loadBalancerIP: ""
++  loadBalancerSourceRanges: []
++  servicePort: 7979
++  type: ClusterIP
+ 
+-## Prometheus Exporter / Metrics
+-##
+-metrics:
+-  enabled: false
+-  ## Metrics exporter pod Annotation and Labels
+-  ##
+-  # podAnnotations:
+-  #   prometheus.io/scrape: "true"
+-  #   prometheus.io/port: "7979"
++priorityClassName: ""
+ 
+-  ## Prometheus Operator ServiceMonitor configuration
+-  ##
+-  serviceMonitor:
+-    enabled: false
+-    ## Namespace in which Prometheus is running
+-    ##
+-    # namespace: monitoring
+-
+-    ## Interval at which metrics should be scraped.
+-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+-    ##
+-    # interval: 10s
+-
+-    ## Timeout after which the scrape is ended
+-    ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint
+-    ##
+-    # scrapeTimeout: 10s
+-
+-    ## ServiceMonitor selector labels
+-    ## ref: https://github.com/bitnami/charts/tree/master/bitnami/prometheus-operator#prometheus-configuration
+-    ##
+-    # selector:
+-    #   prometheus: my-prometheus
++global:
++  systemDefaultRegistry: ""

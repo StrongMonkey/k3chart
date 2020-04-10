@@ -3,6 +3,9 @@ TARGETS := $(shell ls scripts)
 ci:
 	./scripts/ci
 
+prepare: bootstrap
+	./scripts/prepare
+
 bootstrap:
 	./scripts/bootstrap
 
@@ -14,9 +17,6 @@ patch: bootstrap
 
 validate: bootstrap
 	./scripts/validate
-
-rebase: bootstrap
-	./scripts/rebase
 
 mirror: bootstrap
 	./scripts/image-mirror

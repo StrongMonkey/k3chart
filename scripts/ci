@@ -2,5 +2,6 @@
 set -e
 
 ./scripts/bootstrap
-./scripts/generate-patch
+./scripts/prepare
 ./scripts/generate-charts
+./scripts/clean

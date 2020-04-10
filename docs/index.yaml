@@ -3,7 +3,7 @@ entries:
   argo-cd:
   - apiVersion: v1
     appVersion: 1.4.2
-    created: "2020-04-06T16:21:02.702133142Z"
+    created: "2020-04-10T09:33:09.848457564-07:00"
     description: A Helm chart for ArgoCD, a declarative, GitOps continuous delivery
       tool for Kubernetes.
     digest: f0b900dead5c7719e5727ce8d0b7fd27c22306fedfbfe655f8b413fb2996c9a8
@@ -22,10 +22,62 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/gitops/argo-cd-2.0.3.tgz
     version: 2.0.3
+  - apiVersion: v1
+    appVersion: 1.5.1
+    created: "2020-04-10T09:26:55.816889444-07:00"
+    dependencies:
+    - condition: redis-ha.enabled
+      name: redis-ha
+      repository: https://kubernetes-charts.storage.googleapis.com
+      version: 4.4.2
+    description: A Helm chart for ArgoCD, a declarative, GitOps continuous delivery
+      tool for Kubernetes.
+    digest: 15c86e7c5f8034328f081457a1acc528fdb0ce4cb8765cf170fa2cb894fd8138
+    home: https://github.com/argoproj/argo-helm
+    icon: https://raw.githubusercontent.com/argoproj/argo/master/docs/assets/argo.png
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    maintainers:
+    - name: alexec
+    - name: alexmt
+    - name: jessesuen
+    - name: seanson
+    name: argo-cd
+    urls:
+    - https://strongmonkey.github.com/k3chart/gitops/argo-cd-2.2.1-00.tgz
+    version: 2.2.1-00
+  - apiVersion: v1
+    appVersion: 1.5.1
+    created: "2020-04-10T09:33:09.854032642-07:00"
+    dependencies:
+    - condition: redis-ha.enabled
+      name: redis-ha
+      repository: https://kubernetes-charts.storage.googleapis.com
+      version: 4.4.2
+    description: A Helm chart for ArgoCD, a declarative, GitOps continuous delivery
+      tool for Kubernetes.
+    digest: 4a6dbc19286f77234ba04b909cb133e0ffcbce3ff11e9c2a995508e40206d64d
+    home: https://github.com/argoproj/argo-helm
+    icon: https://raw.githubusercontent.com/argoproj/argo/master/docs/assets/argo.png
+    keywords:
+    - argoproj
+    - argocd
+    - gitops
+    maintainers:
+    - name: alexec
+    - name: alexmt
+    - name: jessesuen
+    - name: seanson
+    name: argo-cd
+    urls:
+    - https://strongmonkey.github.com/k3chart/gitops/argo-cd-2.2.1-00.tgz
+    version: 2.2.1-00
   external-dns:
   - apiVersion: v1
     appVersion: 0.7.0
-    created: "2020-04-06T16:21:02.733624805Z"
+    created: "2020-04-10T09:33:09.893747531-07:00"
     description: ExternalDNS is a Kubernetes addon that configures public DNS servers
       with information about exposed Kubernetes services to make them discoverable.
     digest: 5f88370f1c00ebadccdf710eb49719e0acbd4f3e9d4f1c2e2e86bbc958c95794
@@ -48,7 +100,7 @@ entries:
   fluent-bit:
   - apiVersion: v1
     appVersion: 1.3.7
-    created: "2020-04-06T16:21:02.703643731Z"
+    created: "2020-04-10T09:33:09.855866988-07:00"
     description: Fast and Lightweight Log/Data Forwarder for Linux, BSD and OSX
     digest: bb260351bfc99cc845d617e4a957c468ebe75011c99f092665b8b3be9dcdf5a6
     home: https://fluentbit.io
@@ -74,7 +126,7 @@ entries:
   gatekeeper-operator:
   - apiVersion: v1
     appVersion: v3.1.0-beta.8
-    created: "2020-04-06T16:21:02.734189101Z"
+    created: "2020-04-10T09:33:09.898733503-07:00"
     description: A Helm chart for Gatekeeper
     digest: 3629d4e6e51d5162a9cd208a67bb33fdf6234db57162d0d9ca5eee4feb54d659
     home: https://github.com/open-policy-agent/gatekeeper
@@ -88,7 +140,7 @@ entries:
     version: v3.1.0-beta.8
   operator:
   - apiVersion: v1
-    created: "2020-04-06T16:21:02.70237974Z"
+    created: "2020-04-10T09:33:09.854483381-07:00"
     description: Helm chart for deploying Istio operator
     digest: 9160fb6f6a8c7d5a9e77c08d07f0c5c5fc9b1b359613790373788ed1bb54ab72
     icon: https://istio.io/favicons/android-192x192.png
@@ -101,10 +153,38 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/istio/operator-1.5.0.tgz
     version: 1.5.0
+  - apiVersion: v1
+    created: "2020-04-10T09:26:55.81717611-07:00"
+    description: Helm chart for deploying Istio operator
+    digest: 994cf425d3c31c1b0a7ab8ac3bd10ee536f2c26004855ef646bed36fcf44423c
+    icon: https://istio.io/favicons/android-192x192.png
+    keywords:
+    - istio
+    - operator
+    name: operator
+    sources:
+    - http://github.com/istio/operator
+    urls:
+    - https://strongmonkey.github.com/k3chart/istio/operator-1.5.0-00.tgz
+    version: 1.5.0-00
+  - apiVersion: v1
+    created: "2020-04-10T09:33:09.854274749-07:00"
+    description: Helm chart for deploying Istio operator
+    digest: 967516b6e2bf1911b7b2180ff9011fc7952897f0fd5c1f16da659684363934f1
+    icon: https://istio.io/favicons/android-192x192.png
+    keywords:
+    - istio
+    - operator
+    name: operator
+    sources:
+    - http://github.com/istio/operator
+    urls:
+    - https://strongmonkey.github.com/k3chart/istio/operator-1.5.0-00.tgz
+    version: 1.5.0-00
   prometheus-operator:
   - apiVersion: v1
     appVersion: 0.37.0
-    created: "2020-04-06T16:21:02.730520728Z"
+    created: "2020-04-10T09:33:09.87994949-07:00"
     dependencies:
     - condition: kubeStateMetrics.enabled
       name: kube-state-metrics
@@ -142,7 +222,7 @@ entries:
   rancher-cis-benchmark:
   - apiVersion: v1
     appVersion: 0.1.0
-    created: "2020-04-06T16:21:02.731259823Z"
+    created: "2020-04-10T09:33:09.891976961-07:00"
     description: |
       Run CIS benhmark tests
     digest: bbe8d994dac7768bc7a7bae4896052be0a48962b09a3cb436d24ca4115bd711d
@@ -156,10 +236,147 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/rancher-cis-benchmark/rancher-cis-benchmark-0.1.0.tgz
     version: 0.1.0
+  rancher-external-dns:
+  - apiVersion: v1
+    appVersion: 0.6.0
+    created: "2020-04-10T09:26:55.864871914-07:00"
+    description: |
+      Configure external DNS servers (AWS Route53, Google CloudDNS and others)
+      for Kubernetes Ingresses and Services
+    digest: 08e2b5872686474fb351463537a715407d5eedc2612ecf060036644ee5ef7d80
+    home: https://github.com/kubernetes-incubator/external-dns
+    maintainers:
+    - email: rabadin@cisco.com
+      name: rabadin
+    name: rancher-external-dns
+    sources:
+    - https://github.com/kubernetes-incubator/external-dns
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-external-dns/rancher-external-dns-0.1.0-.tgz
+    version: 0.1.0-
+  - apiVersion: v1
+    appVersion: 0.6.0
+    created: "2020-04-10T09:33:09.898228165-07:00"
+    description: |
+      Configure external DNS servers (AWS Route53, Google CloudDNS and others)
+      for Kubernetes Ingresses and Services
+    digest: ae261bc3365c4cb97ee653a87d73da35fcc4986e679fbf59a02cb2848cdd6188
+    home: https://github.com/kubernetes-incubator/external-dns
+    maintainers:
+    - email: rabadin@cisco.com
+      name: rabadin
+    name: rancher-external-dns
+    sources:
+    - https://github.com/kubernetes-incubator/external-dns
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-external-dns/rancher-external-dns-0.1.0-00.tgz
+    version: 0.1.0-00
+  - apiVersion: v1
+    appVersion: 0.6.0
+    created: "2020-04-10T09:33:09.894750803-07:00"
+    description: |
+      Configure external DNS servers (AWS Route53, Google CloudDNS and others)
+      for Kubernetes Ingresses and Services
+    digest: 08e2b5872686474fb351463537a715407d5eedc2612ecf060036644ee5ef7d80
+    home: https://github.com/kubernetes-incubator/external-dns
+    maintainers:
+    - email: rabadin@cisco.com
+      name: rabadin
+    name: rancher-external-dns
+    sources:
+    - https://github.com/kubernetes-incubator/external-dns
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-external-dns/rancher-external-dns-0.1.0-.tgz
+    version: 0.1.0-
+  rancher-gatekeeper-operator:
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-10T09:26:55.866774211-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: c9b2fddb0514b2fd2083b6856ec3fa91fcfc991fe6f7533612447c63dab9ea80
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0.tgz
+    version: 0.1.0
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-10T09:26:55.865851712-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: ad112848081d441627786810899e02cda43db9ac45f1669a8eb7c620d50a5060
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0-00-00.tgz
+    version: 0.1.0-00-00
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-09T13:15:33.930644266-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: 0ceec14ab7bc38ecf475e02081375ebddc20e74b0012ddf034da3223e6f30689
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0-00.tgz
+    version: 0.1.0-00
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-09T13:52:08.11640383-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: 0ceec14ab7bc38ecf475e02081375ebddc20e74b0012ddf034da3223e6f30689
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0-00.tgz
+    version: 0.1.0-00
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-10T09:26:55.866268644-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: 65427b2728d1eb1d5cfa67ccf147f3d821a871be7a626a7e768389b14aa7c11b
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0-00.tgz
+    version: 0.1.0-00
+  - apiVersion: v1
+    appVersion: v3.1.0-beta.7
+    created: "2020-04-10T09:33:09.899215609-07:00"
+    description: A Helm chart for Gatekeeper
+    digest: 2d71d278cbb9d06fa82ac389e4413695237720ea0aa3fabece942c64e30dbd85
+    home: https://github.com/open-policy-agent/gatekeeper
+    keywords:
+    - open policy agent
+    name: rancher-gatekeeper-operator
+    sources:
+    - https://github.com/open-policy-agent/gatekeeper.git
+    urls:
+    - https://strongmonkey.github.com/k3chart/rancher-gatekeeper-operator/rancher-gatekeeper-operator-0.1.0-00.tgz
+    version: 0.1.0-00
   rancher-k3s-upgrader:
   - apiVersion: v1
     appVersion: v0.4.0
-    created: "2020-04-06T16:21:02.734608997Z"
+    created: "2020-04-10T09:33:09.899909537-07:00"
     description: Enables a k3s cluster to update itself by reacting to Plan CRs.
     digest: 04ff451f2e776d5133cc9042fff63800a757315b90515fc3285b116533758054
     home: https://github.com/rancher/system-charts/charts/system-upgrade-controller
@@ -169,4 +386,232 @@ entries:
     urls:
     - https://strongmonkey.github.com/k3chart/rancher-k3s-upgrader/rancher-k3s-upgrader-0.1.0.tgz
     version: 0.1.0
-generated: "2020-04-06T16:21:02.669811685Z"
+  rancher-logging:
+  - apiVersion: v1
+    appVersion: 1.6.3
+    created: "2020-04-10T09:26:55.825765181-07:00"
+    dependencies:
+    - condition: fluentd.enabled
+      name: fluentd
+      repository: file://./charts/fluentd/
+      version: 0.0.2
+    - condition: log-aggregator.enabled
+      name: log-aggregator
+      repository: file://./charts/log-aggregator/
+      version: 0.0.2
+    - condition: fluentd-tester.enabled
+      name: fluentd-tester
+      repository: file://./charts/fluentd-tester/
+      version: 0.0.2
+    description: Rancher logging helm chart to support logging function in rancher
+    digest: 1eca50a6ffe302cdf75754eaf53e620bd969e19675ac6b09e386bc24251b45d2
+    home: https://www.fluentd.org/
+    icon: https://raw.githubusercontent.com/fluent/fluentd-docs/master/public/logo/Fluentd_square.png
+    maintainers:
+    - email: support@rancher.com
+      name: Michelia
+    name: rancher-logging
+    sources:
+    - https://www.fluentd.org/
+    urls:
+    - https://strongmonkey.github.com/k3chart/logging/rancher-logging-0.2.0-00.tgz
+    version: 0.2.0-00
+  - apiVersion: v1
+    appVersion: 1.6.3
+    created: "2020-04-10T09:33:09.859667356-07:00"
+    dependencies:
+    - condition: fluentd.enabled
+      name: fluentd
+      repository: file://./charts/fluentd/
+      version: 0.0.2
+    - condition: log-aggregator.enabled
+      name: log-aggregator
+      repository: file://./charts/log-aggregator/
+      version: 0.0.2
+    - condition: fluentd-tester.enabled
+      name: fluentd-tester
+      repository: file://./charts/fluentd-tester/
+      version: 0.0.2
+    description: Rancher logging helm chart to support logging function in rancher
+    digest: 15739571b3df6b78cc67b4abf3e089c225a6667e2d123ffaa7d0fac62614dd91
+    home: https://www.fluentd.org/
+    icon: https://raw.githubusercontent.com/fluent/fluentd-docs/master/public/logo/Fluentd_square.png
+    maintainers:
+    - email: support@rancher.com
+      name: Michelia
+    name: rancher-logging
+    sources:
+    - https://www.fluentd.org/
+    urls:
+    - https://strongmonkey.github.com/k3chart/logging/rancher-logging-0.2.0-00.tgz
+    version: 0.2.0-00
+  rancher-monitoring:
+  - apiVersion: v1
+    appVersion: 0.1.0
+    created: "2020-04-10T09:26:55.860907679-07:00"
+    dependencies:
+    - condition: alertmanager.enabled
+      name: alertmanager
+      repository: file://./charts/alertmanager/
+      version: 0.0.1
+    - condition: exporter-coredns.enabled
+      name: exporter-coredns
+      repository: file://./charts/exporter-coredns/
+      version: 0.0.1
+    - condition: exporter-kube-controller-manager.enabled
+      name: exporter-kube-controller-manager
+      repository: file://./charts/exporter-kube-controller-manager/
+      version: 0.0.1
+    - condition: exporter-kube-dns.enabled
+      name: exporter-kube-dns
+      repository: file://./charts/exporter-kube-dns/
+      version: 0.0.1
+    - condition: exporter-kube-etcd.enabled
+      name: exporter-kube-etcd
+      repository: file://./charts/exporter-kube-etcd/
+      version: 0.0.1
+    - condition: exporter-kube-scheduler.enabled
+      name: exporter-kube-scheduler
+      repository: file://./charts/exporter-kube-scheduler/
+      version: 0.0.1
+    - condition: exporter-kube-state.enabled
+      name: exporter-kube-state
+      repository: file://./charts/exporter-kube-state/
+      version: 0.0.1
+    - condition: exporter-kubelets.enabled
+      name: exporter-kubelets
+      repository: file://./charts/exporter-kubelets/
+      version: 0.0.1
+    - condition: exporter-kubernetes.enabled
+      name: exporter-kubernetes
+      repository: file://./charts/exporter-kubernetes/
+      version: 0.0.1
+    - condition: exporter-node.enabled
+      name: exporter-node
+      repository: file://./charts/exporter-node/
+      version: 0.0.1
+    - condition: exporter-node-windows.enabled
+      name: exporter-node-windows
+      repository: file://./charts/exporter-node-windows/
+      version: 0.0.1
+    - condition: grafana.enabled
+      name: grafana
+      repository: file://./charts/grafana/
+      version: 0.0.1
+    - condition: prometheus.enabled
+      name: prometheus
+      repository: file://./charts/prometheus/
+      version: 0.0.1
+    - condition: exporter-fluentd.enabled
+      name: exporter-fluentd
+      repository: file://./charts/exporter-fluentd/
+      version: 0.0.1
+    - condition: operator.enabled,enabled
+      name: operator
+      repository: file://./charts/operator/
+      version: 0.0.2
+    - condition: operator-init.enabled
+      name: operator-init
+      repository: file://./charts/operator-init/
+      version: 0.1.0
+    description: Provides monitoring for Kubernetes which maintaining by Rancher 2.
+    digest: b8b044c4ca3945f5e3045d551a1e1bd8afc2cfe9fd605fd785edc34f9bef166d
+    home: https://github.com/coreos/prometheus-operator
+    icon: https://coreos.com/sites/default/files/inline-images/Overview-prometheus_0.png
+    keywords:
+    - operator
+    - prometheus
+    maintainers:
+    - email: frank@rancher.com
+      name: thxCode
+    name: rancher-monitoring
+    sources:
+    - https://github.com/coreos/prometheus-operator
+    urls:
+    - https://strongmonkey.github.com/k3chart/monitoring/rancher-monitoring-0.1.0-00.tgz
+    version: 0.1.0-00
+  - apiVersion: v1
+    appVersion: 0.1.0
+    created: "2020-04-10T09:33:09.891416062-07:00"
+    dependencies:
+    - condition: alertmanager.enabled
+      name: alertmanager
+      repository: file://./charts/alertmanager/
+      version: 0.0.1
+    - condition: exporter-coredns.enabled
+      name: exporter-coredns
+      repository: file://./charts/exporter-coredns/
+      version: 0.0.1
+    - condition: exporter-kube-controller-manager.enabled
+      name: exporter-kube-controller-manager
+      repository: file://./charts/exporter-kube-controller-manager/
+      version: 0.0.1
+    - condition: exporter-kube-dns.enabled
+      name: exporter-kube-dns
+      repository: file://./charts/exporter-kube-dns/
+      version: 0.0.1
+    - condition: exporter-kube-etcd.enabled
+      name: exporter-kube-etcd
+      repository: file://./charts/exporter-kube-etcd/
+      version: 0.0.1
+    - condition: exporter-kube-scheduler.enabled
+      name: exporter-kube-scheduler
+      repository: file://./charts/exporter-kube-scheduler/
+      version: 0.0.1
+    - condition: exporter-kube-state.enabled
+      name: exporter-kube-state
+      repository: file://./charts/exporter-kube-state/
+      version: 0.0.1
+    - condition: exporter-kubelets.enabled
+      name: exporter-kubelets
+      repository: file://./charts/exporter-kubelets/
+      version: 0.0.1
+    - condition: exporter-kubernetes.enabled
+      name: exporter-kubernetes
+      repository: file://./charts/exporter-kubernetes/
+      version: 0.0.1
+    - condition: exporter-node.enabled
+      name: exporter-node
+      repository: file://./charts/exporter-node/
+      version: 0.0.1
+    - condition: exporter-node-windows.enabled
+      name: exporter-node-windows
+      repository: file://./charts/exporter-node-windows/
+      version: 0.0.1
+    - condition: grafana.enabled
+      name: grafana
+      repository: file://./charts/grafana/
+      version: 0.0.1
+    - condition: prometheus.enabled
+      name: prometheus
+      repository: file://./charts/prometheus/
+      version: 0.0.1
+    - condition: exporter-fluentd.enabled
+      name: exporter-fluentd
+      repository: file://./charts/exporter-fluentd/
+      version: 0.0.1
+    - condition: operator.enabled,enabled
+      name: operator
+      repository: file://./charts/operator/
+      version: 0.0.2
+    - condition: operator-init.enabled
+      name: operator-init
+      repository: file://./charts/operator-init/
+      version: 0.1.0
+    description: Provides monitoring for Kubernetes which maintaining by Rancher 2.
+    digest: 56e1c10aa9ba86071623cda9f6758e17152715a0f291394cc7aa88be6b256aee
+    home: https://github.com/coreos/prometheus-operator
+    icon: https://coreos.com/sites/default/files/inline-images/Overview-prometheus_0.png
+    keywords:
+    - operator
+    - prometheus
+    maintainers:
+    - email: frank@rancher.com
+      name: thxCode
+    name: rancher-monitoring
+    sources:
+    - https://github.com/coreos/prometheus-operator
+    urls:
+    - https://strongmonkey.github.com/k3chart/monitoring/rancher-monitoring-0.1.0-00.tgz
+    version: 0.1.0-00
+generated: "2020-04-10T09:33:09.844301471-07:00"
