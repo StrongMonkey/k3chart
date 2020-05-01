@@ -1,6 +1,4 @@
-TARGETS := $(shell ls scripts)
-
-ci:
+ci: bootstrap
 	./scripts/ci
 
 prepare: bootstrap
@@ -23,4 +21,3 @@ mirror: bootstrap
 
 .DEFAULT_GOAL := ci
 
-.PHONY: $(TARGETS)

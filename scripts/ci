@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-./scripts/bootstrap
 ./scripts/prepare
 ./scripts/generate-charts
 ./scripts/clean

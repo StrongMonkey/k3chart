@@ -12,20 +12,12 @@ for f in packages/*; do
 		if [[ -f ${f}/package.yaml ]]; then
 			version=$(yq r ${f}/charts/Chart.yaml version)
 			packageVersion=$(yq r ${f}/package.yaml packageVersion)
-			yq w -i ${f}/charts/Chart.yaml 'version' "${version}-${packageVersion}"
+			yq w -i ${f}/charts/Chart.yaml 'version' "${version}${packageVersion}"
 		fi
-		if [[ ! -f ${f}/sha256sum.txt ]]; then
-			find ${f}/charts/* -type f -exec sha256sum '{}' \; > ${f}/sha256sum.txt
-		fi
-		sha256sum --check ${f}/sha256sum.txt
-		if [[ $? == 1 ]]; then
-			add=1
-			helm package ./packages/$(basename -- ${f})/charts-modified --destination docs/$(basename -- ${f})
-			find ${f}/charts/* -type f -exec sha256sum '{}' \; > ${f}/sha256sum.txt
-		fi
+		git checkout "$(basename -- ${f})-$(yq r ${f}/charts/Chart.yaml version).tgz" || true
   	fi
 done
 
-if [[ $add == 1 ]]; then
+if [[ -n $(git ls-files --other | grep "tgz") ]]; then
 	helm repo index --merge ./docs/index.yaml --url https://strongmonkey.github.com/k3chart docs
 fi

@@ -30,11 +30,11 @@ for f in packages/*; do
 			else
 				curl -sLf ${url} | tar xvzf - -C ${f}/charts --strip ${fields} ${subdirectory} > /dev/null 2>&1
 			fi
+			cp -r ${f}/charts ${f}/upstream
 			for file in $(find ./${f} -type f -name "*.patch"); do
 				basename=$(basename -- ${file})
 				patch -p3 -d ${f}/charts < ${f}/$basename
 			done
-
 		fi
   fi
 done
